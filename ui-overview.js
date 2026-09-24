@@ -1,4 +1,4 @@
-// Phase 4 & 5: Overview View Renderer with Day Filters
+// Stage 2: Overview View Renderer with Branch Color Tokens & Conflict Visibility
 // Displays two matrix modes via segmented control:
 // 1. Day Mode: Classes as rows (grouped by branch, sticky first column), slots as columns, for chosen day.
 //    - Current slot column is highlighted ONLY when viewing today.
@@ -8,9 +8,17 @@
 //    - Filters: Branch and Lecturer filters wired into Day overview.
 // 2. Week Mode: Days as rows, slots as columns, for one selected class OR one selected lecturer.
 //    - Entity picker (toggle between Class and Lecturer, plus dropdown).
+//    - Workload statistics bar (total sessions, theory count, lab count).
 //    - Flags parallel collision prominently if a lecturer is assigned to multiple batches in the same slot.
 
-import { getDayGrid, getClassWeek, getLecturerWeek, getSlotState, filterDayGrid } from "./time.js";
+import {
+  getDayGrid,
+  getClassWeek,
+  getLecturerWeek,
+  getSlotState,
+  filterDayGrid,
+  getWeeklyWorkloadStats
+} from "./time.js";
 
 export function renderOverviewView(container, data, simDate, overviewState, onStateChange, filters = { branch: "ALL", lecturer: "ALL" }) {
   container.innerHTML = "";
@@ -85,6 +93,25 @@ function renderDayOverview(container, data, simDate, overviewState, onStateChang
 
   pickerBar.appendChild(dayLabel);
   pickerBar.appendChild(daySelect);
+
+  const dayPrintBtn = document.createElement("button");
+  dayPrintBtn.type = "button";
+  dayPrintBtn.className = "btn-print-schedule";
+  dayPrintBtn.title = "Print or save this day's schedule";
+  dayPrintBtn.setAttribute("aria-label", "Print day schedule");
+  dayPrintBtn.innerHTML = `
+    <svg class="print-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="6 9 6 2 18 2 18 9"></polyline>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+      <rect x="6" y="14" width="12" height="8"></rect>
+    </svg>
+    <span>Print Day</span>
+  `;
+  dayPrintBtn.addEventListener("click", () => {
+    window.print();
+  });
+  pickerBar.appendChild(dayPrintBtn);
+
   container.appendChild(pickerBar);
 
   // Compute day grid
@@ -107,33 +134,74 @@ function renderDayOverview(container, data, simDate, overviewState, onStateChang
 
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.style.margin = "16px 0";
-    empty.innerHTML = `
-      <div class="empty-state-title">Nothing matches</div>
-      <p class="text-muted">No scheduled classes match the selected filters (${filterText || "active filters"}) on ${selectedDay}.</p>
-      <button type="button" class="btn-secondary" style="margin-top: 12px;" id="overview-clear-filters-btn">Clear Filters</button>
-    `;
-    const clearBtn = empty.querySelector("#overview-clear-filters-btn");
-    if (clearBtn) {
-      clearBtn.addEventListener("click", () => {
-        if (window.TimetableApp && window.TimetableApp.resetFilters) {
-          window.TimetableApp.resetFilters();
-        }
-      });
+    if (isFiltered) {
+      empty.innerHTML = `
+        <div class="empty-state-title">Nothing matches</div>
+        <p class="text-muted">No scheduled classes match the selected filters on ${selectedDay} (${filterText}).</p>
+        <button type="button" class="btn-secondary" style="margin-top: 12px;" id="day-clear-filters-btn">Clear Filters</button>
+      `;
+      const clearBtn = empty.querySelector("#day-clear-filters-btn");
+      if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+          if (window.TimetableApp && window.TimetableApp.resetFilters) {
+            window.TimetableApp.resetFilters();
+          }
+        });
+      }
+    } else {
+      empty.innerHTML = `
+        <div class="empty-state-title">No Classes Scheduled</div>
+        <p class="text-muted">There are no classes scheduled for ${selectedDay}.</p>
+      `;
     }
     container.appendChild(empty);
     return;
   }
 
-  // Determine if viewing today and which slot is active
+  // Quick Branch Jump Selector Chips Bar
+  const branches = ["CE", "CS", "EC", "EE", "ME"];
+  const activeBranches = branches.filter(b => dayGrid.rows.some(r => r.branch === b));
+
+  if (activeBranches.length > 1) {
+    const jumpBar = document.createElement("div");
+    jumpBar.className = "branch-jump-bar";
+    jumpBar.setAttribute("role", "navigation");
+    jumpBar.setAttribute("aria-label", "Jump to department in matrix");
+    jumpBar.innerHTML = `
+      <span class="branch-jump-label">Jump to:</span>
+      <div class="branch-jump-chips">
+        ${activeBranches.map(b => `
+          <button type="button" class="branch-jump-chip branch-jump-chip-${b.toLowerCase()}" data-branch="${b}">
+            ${b}
+          </button>
+        `).join("")}
+      </div>
+    `;
+
+    jumpBar.querySelectorAll(".branch-jump-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const branchCode = chip.getAttribute("data-branch");
+        const targetEl = document.getElementById(`matrix-branch-divider-${branchCode.toLowerCase()}`);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+    });
+
+    container.appendChild(jumpBar);
+  }
+
+  // Active time detection for current slot highlight (strictly when viewing today)
   const isViewingToday = (selectedDay === currentTodayDay);
   const slotState = (window.TimetableApp && window.TimetableApp.getSlotState)
     ? window.TimetableApp.getSlotState(data, simDate)
     : getSlotState(data, simDate);
 
-  const activeSlotId = (isViewingToday && slotState.currentSlot) ? slotState.currentSlot.id : null;
+  const activeSlotId = (isViewingToday && slotState.status === "in-period" && slotState.currentSlot)
+    ? slotState.currentSlot.id
+    : null;
 
-  // Grid wrapper with horizontal scrolling (page itself does NOT scroll horizontally)
+  // Grid wrapper with horizontal scrolling
   const gridScroll = document.createElement("div");
   gridScroll.className = "matrix-scroll-container";
 
@@ -182,7 +250,6 @@ function renderDayOverview(container, data, simDate, overviewState, onStateChang
 
   // Table body: Grouped by branch
   const tbody = document.createElement("tbody");
-  const branches = ["CE", "CS", "EC", "EE", "ME"];
 
   branches.forEach(branch => {
     const branchRows = dayGrid.rows.filter(r => r.branch === branch);
@@ -191,9 +258,14 @@ function renderDayOverview(container, data, simDate, overviewState, onStateChang
     // Branch group divider row
     const branchDividerRow = document.createElement("tr");
     branchDividerRow.className = "matrix-branch-divider-row";
+    branchDividerRow.id = `matrix-branch-divider-${branch.toLowerCase()}`;
+
     const dividerTd = document.createElement("td");
     dividerTd.colSpan = dayGrid.slots.length + 1;
-    dividerTd.textContent = `Branch: ${branch}`;
+    dividerTd.innerHTML = `
+      <span class="branch-pill branch-pill-${branch.toLowerCase()}">${branch}</span>
+      ${branch} Department (${branchRows.length} ${branchRows.length === 1 ? "class" : "classes"})
+    `;
     branchDividerRow.appendChild(dividerTd);
     tbody.appendChild(branchDividerRow);
 
@@ -204,10 +276,10 @@ function renderDayOverview(container, data, simDate, overviewState, onStateChang
       const classTd = document.createElement("th");
       classTd.className = "matrix-td-sticky-class";
       classTd.setAttribute("scope", "row");
-      const classBadge = document.createElement("span");
-      classBadge.className = "class-badge";
-      classBadge.textContent = row.classId;
-      classTd.appendChild(classBadge);
+      classTd.innerHTML = `
+        <span class="branch-pill branch-pill-${row.branch.toLowerCase()}" style="margin-right: 6px;">${row.branch}</span>
+        <span class="class-badge">${row.classId}</span>
+      `;
       tr.appendChild(classTd);
 
       // Slot cells
@@ -347,7 +419,7 @@ function renderWeekOverview(container, data, simDate, overviewState, onStateChan
       const l = data.lecturers[initials];
       const opt = document.createElement("option");
       opt.value = initials;
-      opt.textContent = `${l.name} (${initials}) - ${l.dept}`;
+      opt.textContent = l && l.name ? `${l.name} (${initials})` : initials;
       if (initials === selectedLecturer) opt.selected = true;
       entitySelect.appendChild(opt);
     });
@@ -357,6 +429,25 @@ function renderWeekOverview(container, data, simDate, overviewState, onStateChan
   }
 
   pickerBar.appendChild(entitySelect);
+
+  const weekPrintBtn = document.createElement("button");
+  weekPrintBtn.type = "button";
+  weekPrintBtn.className = "btn-print-schedule";
+  weekPrintBtn.title = "Print or save this week's schedule";
+  weekPrintBtn.setAttribute("aria-label", "Print week schedule");
+  weekPrintBtn.innerHTML = `
+    <svg class="print-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="6 9 6 2 18 2 18 9"></polyline>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+      <rect x="6" y="14" width="12" height="8"></rect>
+    </svg>
+    <span>Print Week</span>
+  `;
+  weekPrintBtn.addEventListener("click", () => {
+    window.print();
+  });
+  pickerBar.appendChild(weekPrintBtn);
+
   container.appendChild(pickerBar);
 
   // Fetch week matrix data
@@ -370,6 +461,23 @@ function renderWeekOverview(container, data, simDate, overviewState, onStateChan
       ? window.TimetableApp.getLecturerWeek(data, selectedLecturer)
       : getLecturerWeek(data, selectedLecturer);
   }
+
+  // Workload Statistics Summary Bar
+  const stats = getWeeklyWorkloadStats(weekData);
+  const statBar = document.createElement("div");
+  statBar.className = "workload-stat-bar";
+  statBar.innerHTML = `
+    <span class="workload-stat-pill">
+      <strong>${stats.totalSessions}</strong> Weekly Periods
+    </span>
+    <span class="workload-stat-pill">
+      <strong>${stats.theoryCount}</strong> Theory
+    </span>
+    <span class="workload-stat-pill">
+      <strong>${stats.labCount}</strong> Labs
+    </span>
+  `;
+  container.appendChild(statBar);
 
   // Active time detection for current slot highlight
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -478,8 +586,9 @@ function renderWeekOverview(container, data, simDate, overviewState, onStateChan
 
           // If in lecturer view, show which class this entry belongs to!
           if (weekTargetType === "lecturer" && entry.classId) {
+            const branch = entry.classId.split("-")[0];
             const cBadge = document.createElement("span");
-            cBadge.className = "class-badge";
+            cBadge.className = `branch-pill branch-pill-${branch.toLowerCase()}`;
             cBadge.style.fontSize = "0.75rem";
             cBadge.style.padding = "1px 5px";
             cBadge.textContent = entry.classId;

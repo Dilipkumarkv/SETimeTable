@@ -1,4 +1,4 @@
-// Phase 3 & 5: Next View Renderer with Branch & Lecturer Filters
+// Stage 2: Next View Renderer with Branch Color Tokens & Consolidated Spans
 // Displays a vertically scrolling list of upcoming slots for today (or tomorrow if today has ended).
 // Invariants enforced:
 // - Chronological ordering of upcoming slots
@@ -8,7 +8,13 @@
 // - Saturday after-hours rolls over directly to Monday morning
 // - Filters: Branch and Lecturer applied to upcoming slots
 
-import { getUpcomingEntries, getSlotState, filterUpcomingEntries } from "./time.js";
+import {
+  getUpcomingEntries,
+  getSlotState,
+  filterUpcomingEntries,
+  formatDuration,
+  getRelativeSlotTime
+} from "./time.js";
 
 export function renderNextView(container, data, simDate, filters = { branch: "ALL", lecturer: "ALL" }) {
   container.innerHTML = "";
@@ -38,9 +44,10 @@ export function renderNextView(container, data, simDate, filters = { branch: "AL
     `;
   } else {
     headerBanner.classList.add("status-live-banner");
+    const activeSlotLabel = slotState.currentSlot ? `Current: ${slotState.currentSlot.label}` : slotState.status;
     headerBanner.innerHTML = `
       <div class="college-status-title">Upcoming Today: ${upcomingData.displayDay}</div>
-      <div class="college-status-desc">Currently at ${slotState.timeStr} (${slotState.currentSlot ? slotState.currentSlot.label : slotState.status}). Showing upcoming periods.</div>
+      <div class="college-status-desc">Clock at ${slotState.timeStr} (${activeSlotLabel}). Showing chronological remaining periods.</div>
     `;
   }
   container.appendChild(headerBanner);
@@ -107,21 +114,35 @@ export function renderNextView(container, data, simDate, filters = { branch: "AL
     const slotSection = document.createElement("section");
     slotSection.className = "branch-section";
 
+    // Compute relative time for slot start
+    const relTime = getRelativeSlotTime(
+      slot.start,
+      slotState.timeStr,
+      upcomingData.isTomorrow,
+      upcomingData.displayDay
+    );
+
     // Slot header
     const slotHeader = document.createElement("div");
-    slotHeader.style.display = "flex";
-    slotHeader.style.justifyContent = "space-between";
-    slotHeader.style.alignItems = "center";
-    slotHeader.style.borderBottom = "2px solid var(--border-color)";
-    slotHeader.style.paddingBottom = "6px";
-    slotHeader.style.marginBottom = "10px";
+    slotHeader.className = "next-slot-header";
+
+    const slotTitleBox = document.createElement("div");
+    slotTitleBox.style.display = "flex";
+    slotTitleBox.style.alignItems = "center";
+    slotTitleBox.style.gap = "8px";
 
     const slotTitle = document.createElement("h2");
-    slotTitle.style.fontSize = "1.1rem";
-    slotTitle.style.fontWeight = "700";
-    slotTitle.style.color = "var(--text-primary)";
+    slotTitle.className = "next-slot-title";
     slotTitle.textContent = `Slot: ${slot.label}`;
-    slotHeader.appendChild(slotTitle);
+    slotTitleBox.appendChild(slotTitle);
+
+    if (relTime) {
+      const relBadge = document.createElement("span");
+      relBadge.className = "slot-rel-badge";
+      relBadge.textContent = relTime;
+      slotTitleBox.appendChild(relBadge);
+    }
+    slotHeader.appendChild(slotTitleBox);
 
     const slotTimeBadge = document.createElement("span");
     slotTimeBadge.className = "time-tag";
@@ -141,21 +162,24 @@ export function renderNextView(container, data, simDate, filters = { branch: "AL
 
       const branchDivider = document.createElement("div");
       branchDivider.className = "next-branch-header";
-      branchDivider.textContent = `Branch: ${branch}`;
+      branchDivider.innerHTML = `<span class="branch-pill branch-pill-${branch.toLowerCase()}">${branch}</span> ${branch} Department`;
       cardList.appendChild(branchDivider);
 
       classList.forEach(classItem => {
         const card = document.createElement("div");
-        card.className = "class-card";
-        card.style.borderLeft = "4px solid var(--accent)";
+        card.className = `class-card branch-${classItem.branch.toLowerCase()}`;
+        card.setAttribute("data-branch", classItem.branch);
 
         const cardHeader = document.createElement("div");
         cardHeader.className = "class-card-header";
 
-        const badge = document.createElement("div");
-        badge.className = "class-badge";
-        badge.textContent = classItem.classId;
-        cardHeader.appendChild(badge);
+        const badgeWrapper = document.createElement("div");
+        badgeWrapper.className = "class-badge-wrapper";
+        badgeWrapper.innerHTML = `
+          <span class="branch-pill branch-pill-${classItem.branch.toLowerCase()}">${classItem.branch}</span>
+          <span class="class-badge">${classItem.classId}</span>
+        `;
+        cardHeader.appendChild(badgeWrapper);
 
         // Compute total span time for the entries if multi-slot
         const firstEntry = classItem.entries[0];
@@ -182,7 +206,7 @@ export function renderNextView(container, data, simDate, filters = { branch: "AL
           left.style.display = "flex";
           left.style.alignItems = "center";
           left.style.flexWrap = "wrap";
-          left.style.gap = "4px";
+          left.style.gap = "6px";
 
           if (entry.batch) {
             const bBadge = document.createElement("span");
@@ -204,19 +228,19 @@ export function renderNextView(container, data, simDate, filters = { branch: "AL
           left.appendChild(sub);
 
           if (spanStartSlot.id !== spanEndSlot.id) {
+            const durationStr = formatDuration(spanStartSlot.start, spanEndSlot.end);
             const spanBadge = document.createElement("span");
-            spanBadge.className = "text-muted";
-            spanBadge.style.fontSize = "0.8rem";
-            spanBadge.style.fontWeight = "600";
-            spanBadge.textContent = `[${spanStartSlot.label}–${spanEndSlot.label}]`;
+            spanBadge.className = "span-tag";
+            spanBadge.textContent = durationStr
+              ? `[${spanStartSlot.label}–${spanEndSlot.label} · ${durationStr}]`
+              : `[${spanStartSlot.label}–${spanEndSlot.label}]`;
             left.appendChild(spanBadge);
           }
 
           if (entry.room) {
             const room = document.createElement("span");
-            room.className = "text-muted";
-            room.style.fontSize = "0.85rem";
-            room.textContent = `(${entry.room})`;
+            room.className = "room-badge";
+            room.textContent = entry.room;
             left.appendChild(room);
           }
 

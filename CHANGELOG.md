@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - Stage 2 — Phase 4: Final Polish, Print Presentation & Production Delivery
+### Added
+- **Institutional Print Stylesheet & Presentation Mode (`styles.css`, `ui-overview.js`)**:
+  - Engineered landscape `@media print` rules optimizing Day Overview and Week Overview matrices for physical printing and PDF export without paper clipping.
+  - Suppressed all interactive navigation chrome, dev simulation controls, banners, and buttons when printing (`display: none !important;`).
+  - Added `page-break-inside: avoid;` on table rows to ensure clean, unbroken printed records.
+  - Integrated 1-tap "Print Day" and "Print Week" schedule buttons (`.btn-print-schedule`) inside the Day and Week overview picker bars.
+- **PWA Service Worker & Production Cache Alignment (`sw.js`)**:
+  - Verified versioned precache list encompasses 100% of application assets and modules (`./`, `./index.html`, `./styles.css`, `./app.js`, `./data.js`, `./time.js`, `./validate.js`, `./ui-now.js`, `./ui-next.js`, `./ui-overview.js`, `./manifest.webmanifest`, icons).
+  - Maintained zero runtime external network requests or third-party CDNs.
+- **Metadata & OpenGraph Production Alignment (`index.html`, `metadata.json`)**:
+  - Synchronized `<title>`, `<meta name="description">`, `og:title`, and `og:description` with official institutional metadata.
+- **Automated Test Suite Expansion (`tests.js` Group L)**:
+  - Added Group L automated tests verifying print media stylesheet rules, print button integration, metadata synchronization, and schema validation integrity.
+  - Total automated test suite now encompasses **87 tests, passing with 0 failures**.
+
+## [2.0.0-phase3] - Stage 2 — Phase 3: View-Specific Refinements & Micro-Interactions
+### Added
+- **Now View Refinements & Instant Ergonomics (`ui-now.js`, `styles.css`)**:
+  - Integrated active period live countdown pill (`.time-countdown-pill`) computing minutes remaining (e.g. `Ends at 13:25 · 45 min remaining` and `(45m left)` on live class cards).
+  - Added dedicated clear button (`×`) on search input with instant query dismissal and live match counter (`.search-count-chip`: `Showing 5 of 15 classes`).
+  - Added Quick-Jump Department Navigation Bar (`.branch-jump-bar`) with smooth scrolling to branch sections (`#branch-section-ce`, etc.).
+  - Polished free period cards with explicit `Free Period — No lecture scheduled` label and muted tone.
+- **Next View Chronological Timeline & Span Duration Formatting (`ui-next.js`, `time.js`)**:
+  - Integrated pure `formatDuration()` to display human-readable span duration on consolidated multi-slot labs (e.g. `[P3–P4 · 1h 50m]`, `[P5–P6 · 1h 40m]`).
+  - Added relative slot start badges (`.slot-rel-badge`: e.g. `In 25m`, `Starts now`, `Tomorrow at 09:45`).
+  - Added slot summary and clear filter action on empty results.
+- **Overview Matrix Polish & Workload Stats (`ui-overview.js`, `time.js`)**:
+  - Added Department Quick-Jump chips above Day Overview matrix to instantly navigate to branch divider rows (`#matrix-branch-divider-cs`, etc.).
+  - Added Weekly Workload Statistics Bar (`.workload-stat-bar`) in Week Overview showing total periods, theory count, and lab count for the selected class or lecturer.
+  - Highlighted current slot header and cells with accent border and `LIVE` pill strictly when viewing today.
+- **Shell & Dev Tool Micro-Interactions (`app.js`, `index.html`)**:
+  - Added 6 Instant Simulation Quick-Preset buttons (`Mon P1 09:45`, `Mon Lab 11:35`, `Lunch 13:30`, `Mon P5 14:00`, `Evening 17:00`, `Sunday 11:00`) for 1-tap testing without manual input manipulation.
+  - Added surgical individual active filter dismissal (`.filter-dismiss-chip`: `Branch: CS ×`, `Faculty: VM ×`), allowing users to clear one filter while retaining the other.
+- **Automated Test Suite Expansion (`tests.js` Group K)**:
+  - Added 7 automated tests verifying `formatDuration`, `getTimeRemaining`, `getRelativeSlotTime`, `getWeeklyWorkloadStats`, simulation preset buttons, individual filter dismissal, and search clear/branch jump components.
+  - Total automated test suite expanded to **83 tests, passing with 0 failures**.
+
+## [2.0.0-phase2] - Stage 2 — Phase 2: Design System & CSS Overhaul
+### Added
+- **Academic Branch Design Token System (`styles.css`)**:
+  - Engineered distinct, high-contrast, WCAG AA-compliant branch accent palettes for all 5 departments:
+    - Civil Engineering (`CE`): Warm Ochre/Amber (`--branch-ce: #d97706; --branch-ce-bg: #fffbeb;`)
+    - Computer Science (`CS`): Tech Royal Blue (`--branch-cs: #2563eb; --branch-cs-bg: #eff6ff;`)
+    - Electronics & Communication (`EC`): Purple/Violet (`--branch-ec: #7c3aed; --branch-ec-bg: #faf5ff;`)
+    - Electrical & Electronics (`EE`): Emerald Green (`--branch-ee: #059669; --branch-ee-bg: #f0fdf4;`)
+    - Mechanical Engineering (`ME`): Crimson/Rose (`--branch-me: #e11d48; --branch-me-bg: #fff1f2;`)
+  - Integrated 4px solid left indicator strips color-coded per branch on class cards across Now and Next views (`.class-card[data-branch="..."]`).
+  - Added rounded branch badge pills (`.branch-pill`) on class cards, department headers, and overview matrix rows.
+- **Ergonomic Filter Bar with Horizontal Scrolling Chips (`app.js`, `styles.css`)**:
+  - Replaced wrap-heavy branch buttons with a smooth horizontal scroll chip container (`.filter-branch-group`), maintaining $\ge 44$px touch targets and keeping vertical screen consumption under 95px on 360px mobile viewports.
+  - Added clear active state contrast and 1-tap "× Clear Filters" reset action.
+- **Icon-Augmented Navigation & Mobile Header Polish (`index.html`, `styles.css`)**:
+  - Upgraded bottom navigation tab bar with inline SVGs for Now (clock), Next (calendar/arrow), and Overview (grid matrix) alongside accessible WAI-ARIA tab semantics.
+  - Added iOS safe-area inset padding (`env(safe-area-inset-bottom)`) for edge-to-edge mobile devices.
+  - Added collapsible toggle state badge ("Hide Controls" / "Show Controls") to dev simulation time panel.
+- **Automated Test Suite Expansion (`tests.js` Group J)**:
+  - Added 6 automated tests verifying branch design tokens, left indicator border strips, badge pills, 44px tap targets, SVG navigation icons, and horizontal chip scrolling.
+  - Total automated test suite now encompasses **76 tests, passing with 0 failures**.
+
 ## [1.0.0] - Phase 8: Data Handoff Architecture, Real Data Verification & Production Delivery
 ### Added
 - **Zero-Code-Change Real Data Contract Validation (`tests.js` Group I)**:

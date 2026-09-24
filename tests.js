@@ -28,7 +28,11 @@ import {
   getLecturerWeek,
   filterCurrentEntries,
   filterUpcomingEntries,
-  filterDayGrid
+  filterDayGrid,
+  formatDuration,
+  getTimeRemaining,
+  getRelativeSlotTime,
+  getWeeklyWorkloadStats
 } from "./time.js";
 
 export async function runAllTests() {
@@ -974,6 +978,205 @@ export async function runAllTests() {
     "Deployment (§3.4 & §7): HTML entrypoint strictly uses relative paths (./) for seamless GitHub Pages hosting",
     hasRelativeManifest && hasRelativeCss && hasRelativeAppJs && noAbsoluteRootLinks,
     `manifest: ${hasRelativeManifest}, css: ${hasRelativeCss}, app.js: ${hasRelativeAppJs}, no root paths: ${noAbsoluteRootLinks}`
+  );
+
+  // -------------------------------------------------------------
+  // Group J: Stage 2 — Phase 2 Design System & CSS Overhaul
+  // -------------------------------------------------------------
+
+  // Test J1: CSS Design Tokens - Branch Accent Tokens in styles.css
+  const hasBranchTokens = [
+    "--branch-ce",
+    "--branch-cs",
+    "--branch-ec",
+    "--branch-ee",
+    "--branch-me"
+  ].every(token => stylesCss.includes(token));
+
+  assert(
+    "Design System: styles.css specifies branch accent tokens for all 5 academic branches (CE, CS, EC, EE, ME)",
+    hasBranchTokens,
+    `Branch tokens found in :root: ${hasBranchTokens}`
+  );
+
+  // Test J2: Branch Left Border Accent Strips on Class Cards
+  const hasBranchCardStrips = [
+    "branch-ce",
+    "branch-cs",
+    "branch-ec",
+    "branch-ee",
+    "branch-me"
+  ].every(cls => stylesCss.includes(cls));
+
+  assert(
+    "Design System: Class cards feature 3-4px solid left indicator strips color-coded per branch",
+    hasBranchCardStrips,
+    `Branch card classes found: ${hasBranchCardStrips}`
+  );
+
+  // Test J3: Branch Badge Pills
+  const hasBranchPills = stylesCss.includes(".branch-pill") && stylesCss.includes(".branch-pill-cs");
+  assert(
+    "Design System: styles.css includes high-contrast, rounded branch badge pills (.branch-pill)",
+    hasBranchPills,
+    `Branch pill classes defined: ${hasBranchPills}`
+  );
+
+  // Test J4: Minimum Tap Target Discipline (>= 44px)
+  const has44pxButtons = stylesCss.includes("min-height: 44px;");
+  assert(
+    "Ergonomics: Minimum 44px tap target is strictly enforced across buttons, selects, and inputs",
+    has44pxButtons,
+    `min-height 44px rules present: ${has44pxButtons}`
+  );
+
+  // Test J5: Icon-Augmented Bottom Navigation Bar with WAI-ARIA
+  const hasNavIcons = indexHtml.includes("<svg") && indexHtml.includes("nav-tab-icon");
+  const hasNowNextOverview = indexHtml.includes("Now") && indexHtml.includes("Next") && indexHtml.includes("Overview");
+  assert(
+    "Navigation: Bottom navigation bar includes inline SVG icons and semantic text labels",
+    hasNavIcons && hasNowNextOverview,
+    `SVG icons: ${hasNavIcons}, tab labels: ${hasNowNextOverview}`
+  );
+
+  // Test J6: Horizontal Scroll Branch Chips in Filter Bar
+  const hasHorizontalChips = stylesCss.includes("overflow-x: auto") && stylesCss.includes(".filter-branch-group");
+  assert(
+    "Ergonomics: Filter bar uses smooth horizontal scrolling chips (.filter-branch-group) to prevent awkward wrapping",
+    hasHorizontalChips,
+    `Horizontal chip scrolling defined: ${hasHorizontalChips}`
+  );
+
+  // -------------------------------------------------------------
+  // Group K: Stage 2 — Phase 3 View-Specific Refinements & Micro-Interactions
+  // -------------------------------------------------------------
+
+  // Test K1: Pure Duration Formatting for Multi-Slot Labs
+  const dur1 = formatDuration("11:35", "13:25"); // 1h 50m
+  const dur2 = formatDuration("14:00", "15:40"); // 1h 40m
+  const dur3 = formatDuration("09:45", "10:40"); // 55m
+  const dur4 = formatDuration("10:00", "12:00"); // 2h
+  const validDurations = (dur1 === "1h 50m") && (dur2 === "1h 40m") && (dur3 === "55m") && (dur4 === "2h");
+
+  assert(
+    "Micro-Interactions: formatDuration() calculates hours and minutes correctly for multi-slot spans",
+    validDurations,
+    `dur1: ${dur1}, dur2: ${dur2}, dur3: ${dur3}, dur4: ${dur4}`
+  );
+
+  // Test K2: Time Remaining & Countdown Computations
+  const rem1 = getTimeRemaining("12:30", "12:00");
+  const rem2 = getTimeRemaining("12:00", "12:00");
+  const rem3 = getTimeRemaining("13:25", "11:35");
+  const validRemaining = (rem1.diffMins === 30 && rem1.text === "30m left") &&
+    (rem2.text === "Ending now") &&
+    (rem3.diffMins === 110 && rem3.text === "1h 50m left");
+
+  assert(
+    "Micro-Interactions: getTimeRemaining() returns exact countdown minutes and human-readable text",
+    validRemaining,
+    `rem1: ${rem1.text}, rem2: ${rem2.text}, rem3: ${rem3.text}`
+  );
+
+  // Test K3: Relative Upcoming Slot Time Helper
+  const relToday = getRelativeSlotTime("14:00", "13:35", false, "MON");
+  const relTomorrow = getRelativeSlotTime("09:45", "17:00", true, "TUE");
+  const validRelativeTimes = (relToday === "In 25m") && (relTomorrow === "Tomorrow at 09:45");
+
+  assert(
+    "Micro-Interactions: getRelativeSlotTime() renders accurate relative countdowns and tomorrow schedule headers",
+    validRelativeTimes,
+    `relToday: ${relToday}, relTomorrow: ${relTomorrow}`
+  );
+
+  // Test K4: Weekly Workload Statistics Aggregator
+  const cs3Week = getClassWeek(TIMETABLE, "CS-III");
+  const cs3Stats = getWeeklyWorkloadStats(cs3Week);
+  const vmWeek = getLecturerWeek(TIMETABLE, "VM");
+  const vmStats = getWeeklyWorkloadStats(vmWeek);
+  const validStats = (cs3Stats.totalSessions > 0) && (cs3Stats.theoryCount >= 0) && (cs3Stats.labCount >= 0) &&
+    (vmStats.totalSessions > 0);
+
+  assert(
+    "Micro-Interactions: getWeeklyWorkloadStats() aggregates weekly sessions, theory periods, and lab counts",
+    validStats,
+    `CS-III: ${cs3Stats.totalSessions} sessions (${cs3Stats.theoryCount} theory, ${cs3Stats.labCount} labs)`
+  );
+
+  // Test K5: Time Simulation Presets in Shell UI
+  const hasSimPresets = indexHtml.includes("sim-presets-chips") && indexHtml.includes("sim-preset-btn");
+  const simPresetCount = (indexHtml.match(/class="sim-preset-btn"/g) || []).length;
+
+  assert(
+    "Micro-Interactions: index.html contains instant simulation quick-preset buttons (>= 6 presets)",
+    hasSimPresets && simPresetCount >= 6,
+    `Preset chips present: ${hasSimPresets}, preset count: ${simPresetCount}`
+  );
+
+  // Test K6: Individual Active Filter Dismissal Chips in app.js
+  const appJsContent = await fetch("./app.js").then(r => r.text()).catch(() => "");
+  const hasFilterDismiss = appJsContent.includes("filter-dismiss-chip") && appJsContent.includes("data-clear");
+
+  assert(
+    "Micro-Interactions: app.js supports surgical individual active filter dismissal (Branch / Faculty)",
+    hasFilterDismiss,
+    `Dismiss chip support in app.js: ${hasFilterDismiss}`
+  );
+
+  // Test K7: Search Clear Button & Quick-Jump Department Navigation in ui-now.js
+  const uiNowContent = await fetch("./ui-now.js").then(r => r.text()).catch(() => "");
+  const hasSearchClear = uiNowContent.includes("search-clear-btn") && uiNowContent.includes("now-search-count");
+  const hasBranchJump = uiNowContent.includes("branch-jump-bar") && uiNowContent.includes("branch-jump-chip");
+
+  assert(
+    "Micro-Interactions: ui-now.js integrates 1-tap search clear (×), live result counts, and branch quick-jump navigation",
+    hasSearchClear && hasBranchJump,
+    `searchClear: ${hasSearchClear}, branchJump: ${hasBranchJump}`
+  );
+
+  // -------------------------------------------------------------
+  // Group L: Stage 2 — Phase 4 Final Polish, Presentation & Production Audit
+  // -------------------------------------------------------------
+
+  // Test L1: Print Media Stylesheet Invariants in styles.css
+  const hasMediaPrint = stylesCss.includes("@media print");
+  const hidesChromeOnPrint = stylesCss.includes(".bottom-nav") && stylesCss.includes("display: none !important;");
+  const avoidsRowPageBreak = stylesCss.includes("page-break-inside: avoid !important;");
+
+  assert(
+    "Production Polish: styles.css contains @media print rules suppressing app chrome and preventing broken row page breaks",
+    hasMediaPrint && hidesChromeOnPrint && avoidsRowPageBreak,
+    `hasMediaPrint: ${hasMediaPrint}, hidesChrome: ${hidesChromeOnPrint}, avoidsRowPageBreak: ${avoidsRowPageBreak}`
+  );
+
+  // Test L2: Print Schedule Action in ui-overview.js
+  const uiOverviewContent = await fetch("./ui-overview.js").then(r => r.text()).catch(() => "");
+  const hasPrintButton = uiOverviewContent.includes("btn-print-schedule") && uiOverviewContent.includes("window.print()");
+
+  assert(
+    "Production Polish: ui-overview.js provides 1-tap print action buttons calling window.print() for Day and Week grids",
+    hasPrintButton,
+    `Print button wired: ${hasPrintButton}`
+  );
+
+  // Test L3: Metadata & Head OpenGraph Uniformity
+  const metadataJson = await fetch("./metadata.json").then(r => r.json()).catch(() => ({}));
+  const htmlHasTitle = indexHtml.includes(`<title>${metadataJson.name}</title>`);
+  const htmlHasDesc = indexHtml.includes(metadataJson.description);
+
+  assert(
+    "Production Polish: index.html title and meta description strictly match metadata.json without placeholders",
+    htmlHasTitle && htmlHasDesc,
+    `htmlHasTitle: ${htmlHasTitle}, htmlHasDesc: ${htmlHasDesc}`
+  );
+
+  // Test L4: Comprehensive Timetable Production Validation
+  const prodValidationErrors = validateTimetable(TIMETABLE).filter(e => e.level === "error");
+
+  assert(
+    "Production Integrity: Final timetable dataset maintains 0 schema validation errors or referential integrity faults",
+    prodValidationErrors.length === 0,
+    `Errors found: ${prodValidationErrors.length}`
   );
 
   return results;

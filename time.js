@@ -596,3 +596,95 @@ export function filterDayGrid(dayGrid, filters = {}) {
     rows: filteredRows
   };
 }
+
+/**
+ * Formats a duration in human-readable notation (e.g. "1h 50m", "45m", "2h").
+ */
+export function formatDuration(startStr, endStr) {
+  if (!startStr || !endStr) return "";
+  const startMins = timeStringToMinutes(startStr);
+  const endMins = timeStringToMinutes(endStr);
+  const diff = Math.max(0, endMins - startMins);
+  const hours = Math.floor(diff / 60);
+  const mins = diff % 60;
+
+  if (hours > 0 && mins > 0) {
+    return `${hours}h ${mins}m`;
+  }
+  if (hours > 0 && mins === 0) {
+    return `${hours}h`;
+  }
+  return `${mins}m`;
+}
+
+/**
+ * Computes remaining minutes and label between currentTimeStr and endTimeStr.
+ */
+export function getTimeRemaining(endTimeStr, currentTimeStr) {
+  if (!endTimeStr || !currentTimeStr) return { diffMins: 0, text: "" };
+  const curMins = timeStringToMinutes(currentTimeStr);
+  const endMins = timeStringToMinutes(endTimeStr);
+  const diffMins = endMins - curMins;
+
+  if (diffMins <= 0) {
+    return { diffMins, text: "Ending now" };
+  }
+  if (diffMins < 60) {
+    return { diffMins, text: `${diffMins}m left` };
+  }
+  const h = Math.floor(diffMins / 60);
+  const m = diffMins % 60;
+  return { diffMins, text: m > 0 ? `${h}h ${m}m left` : `${h}h left` };
+}
+
+/**
+ * Computes relative timing badge string for upcoming slots.
+ */
+export function getRelativeSlotTime(slotStartStr, currentTimeStr, isTomorrow = false, dayName = "") {
+  if (isTomorrow) {
+    return `Tomorrow at ${slotStartStr}`;
+  }
+  if (!slotStartStr || !currentTimeStr) return "";
+  const curMins = timeStringToMinutes(currentTimeStr);
+  const startMins = timeStringToMinutes(slotStartStr);
+  const diff = startMins - curMins;
+
+  if (diff <= 0) {
+    return "Starts now";
+  }
+  if (diff < 60) {
+    return `In ${diff}m`;
+  }
+  const h = Math.floor(diff / 60);
+  const m = diff % 60;
+  return m > 0 ? `In ${h}h ${m}m` : `In ${h}h`;
+}
+
+/**
+ * Computes weekly workload statistics (total sessions, theory count, lab count).
+ */
+export function getWeeklyWorkloadStats(weekData) {
+  if (!weekData || !weekData.days) {
+    return { totalSessions: 0, theoryCount: 0, labCount: 0 };
+  }
+  let totalSessions = 0;
+  let theoryCount = 0;
+  let labCount = 0;
+
+  weekData.days.forEach(dayRow => {
+    dayRow.cells.forEach(cell => {
+      if (cell.entries && cell.entries.length > 0) {
+        totalSessions += cell.entries.length;
+        cell.entries.forEach(entry => {
+          if (entry.type === "lab") {
+            labCount++;
+          } else {
+            theoryCount++;
+          }
+        });
+      }
+    });
+  });
+
+  return { totalSessions, theoryCount, labCount };
+}

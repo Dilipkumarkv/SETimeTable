@@ -1,4 +1,4 @@
-// Phase 2, 4 & 5: Application Orchestrator, Shell Wiring & Filters
+// Stage 2: Application Orchestrator, Shell Wiring & Filters
 import { TIMETABLE } from "./data.js";
 import { validateTimetable } from "./validate.js";
 import {
@@ -77,6 +77,17 @@ window.TimetableApp = {
     renderFilterBar();
     renderCurrentTab();
   },
+  setSimulatedTime(day, time) {
+    state.isSimulating = true;
+    state.simDay = day;
+    state.simTime = time;
+    const simDaySelect = document.getElementById("sim-day");
+    const simTimeInput = document.getElementById("sim-time");
+    if (simDaySelect) simDaySelect.value = day;
+    if (simTimeInput) simTimeInput.value = time;
+    updateHeaderClock();
+    renderCurrentTab();
+  },
   resetSimulation() {
     state.isSimulating = false;
     document.getElementById("sim-day").value = "MON";
@@ -152,7 +163,7 @@ function renderFilterBar() {
 
   const isFiltered = (state.filters.branch !== "ALL" || state.filters.lecturer !== "ALL");
 
-  let lecturerOptionsHtml = `<option value="ALL"${state.filters.lecturer === "ALL" ? " selected" : ""}>All Lecturers</option>`;
+  let lecturerOptionsHtml = `<option value="ALL"${state.filters.lecturer === "ALL" ? " selected" : ""}>All Faculty Members</option>`;
   lecturerKeys.forEach(initials => {
     const l = state.data.lecturers[initials];
     const label = l && l.name ? `${l.name} (${initials})` : initials;
@@ -175,23 +186,31 @@ function renderFilterBar() {
       </div>
     </div>
     <div class="filter-row filter-row-lecturer">
-      <label class="filter-label" for="filter-lecturer-select">Lecturer:</label>
+      <label class="filter-label" for="filter-lecturer-select">Faculty:</label>
       <div class="filter-lecturer-wrapper">
         <select id="filter-lecturer-select" class="filter-select" aria-label="Filter by lecturer">
           ${lecturerOptionsHtml}
         </select>
         ${isFiltered ? `
           <button type="button" id="filter-clear-btn" class="filter-clear-btn" title="Clear all filters">
-            Clear Filters
+            × Clear Filters
           </button>
         ` : ""}
       </div>
     </div>
     ${isFiltered ? `
       <div class="filter-active-indicator">
-        <span>Active:</span>
-        <span class="filter-tag-pill">${state.filters.branch !== "ALL" ? `Branch: ${state.filters.branch}` : "All Branches"}</span>
-        <span class="filter-tag-pill">${state.filters.lecturer !== "ALL" ? `Lecturer: ${state.data.lecturers[state.filters.lecturer]?.name || state.filters.lecturer}` : "All Lecturers"}</span>
+        <span>Active Filters:</span>
+        ${state.filters.branch !== "ALL" ? `
+          <button type="button" class="filter-dismiss-chip" data-clear="branch" aria-label="Clear branch filter">
+            Branch: ${state.filters.branch} <span class="filter-dismiss-x">×</span>
+          </button>
+        ` : ""}
+        ${state.filters.lecturer !== "ALL" ? `
+          <button type="button" class="filter-dismiss-chip" data-clear="lecturer" aria-label="Clear lecturer filter">
+            Faculty: ${state.data.lecturers[state.filters.lecturer]?.name || state.filters.lecturer} <span class="filter-dismiss-x">×</span>
+          </button>
+        ` : ""}
       </div>
     ` : ""}
   `;
@@ -220,6 +239,19 @@ function renderFilterBar() {
       window.TimetableApp.resetFilters();
     });
   }
+
+  // Attach event listeners for individual dismiss chips
+  const dismissChips = filterContainer.querySelectorAll(".filter-dismiss-chip");
+  dismissChips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      const clearTarget = chip.getAttribute("data-clear");
+      if (clearTarget === "branch") {
+        window.TimetableApp.setBranchFilter("ALL");
+      } else if (clearTarget === "lecturer") {
+        window.TimetableApp.setLecturerFilter("ALL");
+      }
+    });
+  });
 }
 
 /**
@@ -312,10 +344,14 @@ function setupEventListeners() {
   // Time simulation collapsible toggle (clickable & keyboard accessible)
   const simHeader = document.getElementById("sim-header");
   const simControls = document.getElementById("sim-controls");
+  const simToggleText = document.getElementById("sim-toggle-text");
   const toggleSim = () => {
     const isHidden = simControls.style.display === "none";
     simControls.style.display = isHidden ? "flex" : "none";
     simHeader.setAttribute("aria-expanded", isHidden ? "true" : "false");
+    if (simToggleText) {
+      simToggleText.textContent = isHidden ? "Hide Controls" : "Show Controls";
+    }
   };
 
   if (simHeader && simControls) {
@@ -349,6 +385,18 @@ function setupEventListeners() {
       window.TimetableApp.resetSimulation();
     });
   }
+
+  // Simulation Quick Preset Buttons
+  const presetBtns = document.querySelectorAll(".sim-preset-btn");
+  presetBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const day = btn.getAttribute("data-day");
+      const time = btn.getAttribute("data-time");
+      if (day && time) {
+        window.TimetableApp.setSimulatedTime(day, time);
+      }
+    });
+  });
 }
 
 /**
@@ -522,25 +570,16 @@ function setupPWA() {
     });
 
     if (updateReloadBtn) {
-      updateReloadBtn.addEventListener("click", async () => {
-        try {
-          const reg = await navigator.serviceWorker.getRegistration();
-          if (reg && reg.waiting) {
-            reg.waiting.postMessage({ type: "SKIP_WAITING" });
-          } else if (newWorker) {
-            newWorker.postMessage({ type: "SKIP_WAITING" });
-          } else {
-            window.location.reload();
-          }
-        } catch {
-          window.location.reload();
+      updateReloadBtn.addEventListener("click", () => {
+        if (newWorker) {
+          newWorker.postMessage({ type: "SKIP_WAITING" });
         }
       });
     }
   }
 }
 
-// Kick off when DOM is ready
+// Bootstrap on DOMContentLoaded or immediately if already loaded
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
 } else {
