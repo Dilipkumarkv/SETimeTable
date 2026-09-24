@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetable PWA Unit Tests</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 1.5rem;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      border-bottom: 2px solid #cbd5e1;
+      padding-bottom: 0.5rem;
+    }
+    .summary {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .badge {
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      color: white;
+    }
+    .badge-pass { background: #16a34a; }
+    .badge-fail { background: #dc2626; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid #cbd5e1;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.95rem;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    .status-pass {
+      color: #16a34a;
+      font-weight: bold;
+    }
+    .status-fail {
+      color: #dc2626;
+      font-weight: bold;
+    }
+    .error-detail {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #b91c1c;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>College Timetable Unit Tests</h1>
+  <div id="summary" class="summary">Running tests...</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 50px;">#</th>
+        <th>Test Description</th>
+        <th style="width: 100px;">Status</th>
+        <th>Details / Evidence</th>
+      </tr>
+    </thead>
+    <tbody id="test-rows"></tbody>
+  </table>
+
+  <script type="module">
+    import { runAllTests } from "./tests.js";
+
+    async function execute() {
+      const results = await runAllTests();
+      const tbody = document.getElementById("test-rows");
+      const summary = document.getElementById("summary");
+
+      let passedCount = 0;
+      let failedCount = 0;
+
+      tbody.innerHTML = "";
+
+      results.forEach((r, idx) => {
+        if (r.pass) passedCount++;
+        else failedCount++;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${r.name}</td>
+          <td class="${r.pass ? 'status-pass' : 'status-fail'}">${r.pass ? 'PASS' : 'FAIL'}</td>
+          <td>${r.detail ? `<div class="${r.pass ? '' : 'error-detail'}">${r.detail}</div>` : 'OK'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      summary.innerHTML = `
+        <span class="badge badge-pass">Passed: ${passedCount}</span>
+        ${failedCount > 0 ? `<span class="badge badge-fail">Failed: ${failedCount}</span>` : '<span class="badge badge-pass">All Tests Passing!</span>'}
+        <span style="align-self: center; color: #475569;">Total: ${results.length}</span>
+      `;
+    }
+
+    execute();
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "SET Polytechnic Timetable PWA",
+  "description": "Phone-first offline PWA for campus principals to track real-time classes, upcoming slots, and weekly schedules.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
