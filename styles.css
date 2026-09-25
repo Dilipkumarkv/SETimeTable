@@ -8,29 +8,29 @@
    ========================================================================== */
 
 :root {
-  /* Surface & Neutral Colors */
+  /* Surface & Neutral Colors (Refined Modern Flat System) */
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-muted: #f1f5f9;
   --bg-subtle: #f8fafc;
-  --border-color: #cbd5e1;
-  --border-subtle: #e2e8f0;
-  --border-strong: #94a3b8;
+  --border-color: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  --border-strong: #cbd5e1;
 
-  /* Typography Colors */
-  --text-primary: #0f172a;
+  /* Typography Colors (High-Legibility Deep Slate) */
+  --text-primary: #090d16;
   --text-secondary: #334155;
   --text-muted: #64748b;
   --text-light: #94a3b8;
 
-  /* Core Accent System */
+  /* Core Accent System (Academic Royal Cobalt) */
   --accent: #1d4ed8;
   --accent-hover: #1e40af;
   --accent-light: #eff6ff;
   --accent-border: #bfdbfe;
 
   /* Live & Status Indicators */
-  --live-color: #15803d;
+  --live-color: #16a34a;
   --live-bg: #f0fdf4;
   --live-border: #86efac;
   --break-color: #b45309;
@@ -50,7 +50,7 @@
   --collision-border: #ea580c;
   --collision-text: #c2410c;
 
-  /* Branch-Specific Accent Token System (Stage 2) */
+  /* Branch-Specific Accent Token System (Modern Editorial Palette) */
   --branch-ce: #d97706;
   --branch-ce-bg: #fffbeb;
   --branch-ce-border: #fde68a;
@@ -76,8 +76,9 @@
   --branch-me-border: #fecdd3;
   --branch-me-text: #9f1239;
 
-  /* Typography Stack */
-  --font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Modern System Typography Stack */
+  --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Plus Jakarta Sans", "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", "Segoe UI", sans-serif;
 }
 
 /* ==========================================================================
@@ -202,7 +203,8 @@ select:focus-visible,
 .app-header {
   background-color: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
-  padding: 10px 16px;
+  padding: 8px 16px;
+  min-height: 58px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -221,9 +223,9 @@ select:focus-visible,
 
 .brand-logo {
   display: block;
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 
@@ -233,18 +235,21 @@ select:focus-visible,
 }
 
 .brand-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .brand-subtitle {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-muted);
-  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 1px;
 }
 
 .header-actions {
@@ -262,15 +267,16 @@ select:focus-visible,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 12px;
   background-color: var(--accent);
   color: #ffffff;
   border: 1px solid var(--accent);
-  border-radius: 4px;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
 .install-btn:hover {
@@ -281,14 +287,16 @@ select:focus-visible,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-primary);
-  background: var(--bg-muted);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   padding: 6px 12px;
-  border-radius: 4px;
-  min-height: 44px;
+  border-radius: 6px;
+  min-height: 40px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .live-indicator {
@@ -297,6 +305,19 @@ select:focus-visible,
   border-radius: 50%;
   background-color: var(--live-color);
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+  animation: live-pulse-dot 2.5s infinite ease-in-out;
+}
+
+@keyframes live-pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
 }
 
 .sim-indicator {
@@ -1479,9 +1500,10 @@ select:focus-visible,
   background: var(--bg-primary);
   border-top: 1px solid var(--border-color);
   display: flex;
-  height: 64px;
+  height: 60px;
   z-index: 100;
   padding-bottom: max(0px, env(safe-area-inset-bottom));
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .nav-tab-btn {
@@ -1493,30 +1515,48 @@ select:focus-visible,
   background: transparent;
   border: none;
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: var(--text-muted);
   cursor: pointer;
-  min-height: 44px;
-  border-top: 3px solid transparent;
+  min-height: 48px;
   gap: 3px;
-  transition: color 0.1s, background-color 0.1s;
+  letter-spacing: -0.01em;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  position: relative;
 }
 
 .nav-tab-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+  stroke-width: 2.2;
+  transition: transform 0.15s ease;
 }
 
 .nav-tab-btn:hover {
-  background: var(--bg-muted);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
 }
 
 .nav-tab-btn.active {
   color: var(--accent);
-  border-top-color: var(--accent);
-  background: var(--accent-light);
+  background: transparent;
+}
+
+.nav-tab-btn.active .nav-tab-icon {
+  transform: translateY(-1px);
+}
+
+.nav-tab-btn.active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 2.5px;
+  background-color: var(--accent);
+  border-radius: 0 0 2px 2px;
 }
 
 /* Helper text */
@@ -1741,20 +1781,23 @@ select:focus-visible,
 }
 
 .today-date-text {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
 .today-clock-text {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: var(--accent);
   background-color: var(--accent-light);
   border: 1px solid var(--accent-border);
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .today-summary-right {
@@ -1766,8 +1809,8 @@ select:focus-visible,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   padding: 4px 10px;
   border-radius: 6px;
   border: 1px solid transparent;
@@ -1897,7 +1940,7 @@ select:focus-visible,
   bottom: 24px;
   left: 7px;
   width: 2px;
-  background-color: var(--border-subtle);
+  background-color: var(--border-color);
 }
 
 /* Timeline Block */
@@ -1911,10 +1954,10 @@ select:focus-visible,
 /* Node indicator dot on the track */
 .timeline-node {
   position: absolute;
-  left: -24px;
-  top: 14px;
-  width: 14px;
-  height: 14px;
+  left: -23px;
+  top: 16px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background-color: var(--bg-primary);
   border: 2px solid var(--border-strong);
@@ -1925,6 +1968,7 @@ select:focus-visible,
   background-color: #dc2626;
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+  animation: live-pulse-dot 2.5s infinite ease-in-out;
 }
 
 .node-next {
@@ -1958,7 +2002,8 @@ select:focus-visible,
 .timeline-block.block-now .timeline-block-content {
   background-color: #ffffff;
   border: 2px solid #2563eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
 }
 
 .timeline-block.block-next .timeline-block-content {
@@ -2144,19 +2189,20 @@ select:focus-visible,
 .timeline-entry-card {
   position: relative;
   display: flex;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   overflow: hidden;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .timeline-entry-card:hover {
-  border-color: var(--border-color);
+  border-color: #94a3b8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .card-indicator-strip {
-  width: 4px;
+  width: 3.5px;
   flex-shrink: 0;
   background-color: var(--border-strong);
 }
@@ -2169,7 +2215,7 @@ select:focus-visible,
 
 .card-main-body {
   flex: 1;
-  padding: 10px 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -2185,11 +2231,13 @@ select:focus-visible,
 }
 
 .entry-subject-title {
-  font-size: 0.98rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
   font-weight: 700;
+  letter-spacing: -0.018em;
   color: var(--text-primary);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.35;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -2198,7 +2246,7 @@ select:focus-visible,
   font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -2368,29 +2416,35 @@ select:focus-visible,
 
 .week-scope-group {
   display: flex;
-  gap: 6px;
+  gap: 3px;
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
   flex-wrap: wrap;
 }
 
 .week-scope-btn {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
+  background-color: transparent;
+  border: 1px solid transparent;
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  min-height: 44px;
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  transition: all 0.15s ease;
 }
 
 .week-scope-btn.active {
-  background-color: var(--accent);
-  color: #ffffff;
-  border-color: var(--accent);
+  background-color: #ffffff;
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .week-toolbar-actions {
@@ -2403,7 +2457,7 @@ select:focus-visible,
 .week-layout-switcher {
   display: inline-flex;
   background-color: var(--bg-muted);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 2px;
 }
@@ -2418,6 +2472,7 @@ select:focus-visible,
   border-radius: 4px;
   cursor: pointer;
   min-height: 38px;
+  transition: all 0.15s ease;
 }
 
 .layout-toggle-btn.active {
@@ -2435,10 +2490,11 @@ select:focus-visible,
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-  min-height: 44px;
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  transition: background-color 0.15s ease;
 }
 
 .btn-now-shortcut:hover {
@@ -2452,8 +2508,8 @@ select:focus-visible,
   gap: 10px;
   flex-wrap: wrap;
   background-color: var(--bg-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 8px 12px;
 }
 
@@ -2514,14 +2570,16 @@ select:focus-visible,
 }
 
 .week-day-pill.active {
-  background-color: var(--accent);
+  background-color: #1e3a8a;
   color: #ffffff;
-  border-color: var(--accent);
+  border-color: #1e3a8a;
 }
 
 .week-day-pill .day-code {
+  font-family: var(--font-display);
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .week-day-pill.active .day-code {
@@ -2529,11 +2587,11 @@ select:focus-visible,
 }
 
 .day-today-tag {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  background-color: #22c55e;
+  background-color: #16a34a;
   color: #ffffff;
   padding: 1px 4px;
   border-radius: 3px;
@@ -2542,7 +2600,7 @@ select:focus-visible,
 
 .week-day-pill.active .day-today-tag {
   background-color: #ffffff;
-  color: var(--accent);
+  color: #1e3a8a;
 }
 
 /* Feed Layout Styles */
@@ -2807,11 +2865,12 @@ select:focus-visible,
   border-radius: 8px;
   color: var(--text-primary);
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .explore-search-input:focus {
-  border-color: var(--accent);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .explore-search-input-wrapper .search-clear-btn {
@@ -2831,11 +2890,11 @@ select:focus-visible,
 .explore-filters-box {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 14px 16px;
 }
 
 .explore-filter-row {
@@ -2846,9 +2905,11 @@ select:focus-visible,
 }
 
 .explore-filter-label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   min-width: 55px;
 }
 
@@ -2862,21 +2923,26 @@ select:focus-visible,
 
 .explore-chip-btn {
   background-color: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-color);
   color: var(--text-secondary);
   font-size: 0.82rem;
   font-weight: 600;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
   min-height: 38px;
   white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.explore-chip-btn:hover {
+  border-color: var(--border-strong);
 }
 
 .explore-chip-btn.active {
-  background-color: var(--accent);
+  background-color: #1e3a8a;
   color: #ffffff;
-  border-color: var(--accent);
+  border-color: #1e3a8a;
 }
 
 .explore-selects-row {
