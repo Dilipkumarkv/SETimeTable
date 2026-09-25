@@ -12,9 +12,13 @@ import {
   getLecturerWeek,
   filterCurrentEntries,
   filterUpcomingEntries,
-  filterDayGrid
+  filterDayGrid,
+  getDayFeed,
+  searchAndFilterEntries
 } from "./time.js";
 import { renderTodayView } from "./ui-today.js";
+import { renderWeekView } from "./ui-week.js";
+import { renderExploreView } from "./ui-explore.js";
 import { renderNowView } from "./ui-now.js";
 import { renderNextView } from "./ui-next.js";
 import { renderOverviewView } from "./ui-overview.js";
@@ -29,6 +33,22 @@ const state = {
   filters: {
     branch: "ALL", // "ALL" | "CE" | "CS" | "EC" | "EE" | "ME"
     lecturer: "ALL" // "ALL" | lecturer initials
+  },
+  weekState: {
+    scope: "all", // "all" | "class" | "lecturer"
+    day: "MON",
+    layout: "feed", // "feed" | "grid"
+    selectedClass: "CS-III",
+    selectedLecturer: "RBL"
+  },
+  exploreState: {
+    query: "",
+    branch: "ALL",
+    sem: "ALL",
+    day: "ALL",
+    activityType: "ALL",
+    lecturer: "ALL",
+    classId: "ALL"
   },
   overviewState: {
     mode: "day",
@@ -49,6 +69,7 @@ window.TimetableApp = {
   getTodayTimeline,
   filterTodayTimeline,
   getDayGrid,
+  getDayFeed,
   getClassWeek,
   getLecturerWeek,
   filterCurrentEntries,
@@ -76,6 +97,23 @@ window.TimetableApp = {
   setSearchQuery(q) {
     state.nowSearchQuery = q;
     renderCurrentTab();
+  },
+  setWeekState(newState) {
+    state.weekState = newState;
+    renderFilterBar();
+    renderCurrentTab();
+  },
+  getWeekState() {
+    return { ...state.weekState };
+  },
+  searchAndFilterEntries,
+  setExploreState(newState) {
+    state.exploreState = newState;
+    renderFilterBar();
+    renderCurrentTab();
+  },
+  getExploreState() {
+    return { ...state.exploreState };
   },
   setOverviewState(newState) {
     state.overviewState = newState;
@@ -165,7 +203,7 @@ function renderFilterBar() {
   const isVisibleTab = (
     state.activeTab === "today" ||
     state.activeTab === "now" ||
-    (state.activeTab === "week" && state.overviewState.mode === "day") ||
+    (state.activeTab === "week" && state.weekState.scope === "all") ||
     (state.activeTab === "overview" && state.overviewState.mode === "day")
   );
 
@@ -288,7 +326,19 @@ function renderCurrentTab() {
 
   if (state.activeTab === "today" || state.activeTab === "now") {
     renderTodayView(mainContent, state.data, effDate, state.filters);
-  } else if (state.activeTab === "week" || state.activeTab === "overview") {
+  } else if (state.activeTab === "week") {
+    renderWeekView(
+      mainContent,
+      state.data,
+      effDate,
+      state.weekState,
+      (newWeekState) => {
+        state.weekState = newWeekState;
+        renderCurrentTab();
+      },
+      state.filters
+    );
+  } else if (state.activeTab === "overview") {
     renderOverviewView(
       mainContent,
       state.data,
@@ -300,7 +350,17 @@ function renderCurrentTab() {
       },
       state.filters
     );
-  } else if (state.activeTab === "explore" || state.activeTab === "next") {
+  } else if (state.activeTab === "explore") {
+    renderExploreView(
+      mainContent,
+      state.data,
+      state.exploreState,
+      (newExploreState) => {
+        state.exploreState = newExploreState;
+        renderCurrentTab();
+      }
+    );
+  } else if (state.activeTab === "next") {
     renderNextView(mainContent, state.data, effDate, state.filters);
   }
 }

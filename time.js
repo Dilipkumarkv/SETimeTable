@@ -981,3 +981,205 @@ export function filterTodayTimeline(timeline, filters) {
     timelineItems: filteredItems
   };
 }
+
+/**
+ * Returns a mobile-first chronological feed for a specific weekday.
+ * Consolidates multi-slot entries (e.g. labs) so they show full span and duration.
+ * Pure function: accepts (data, day, filters).
+ */
+export function getDayFeed(data, day, filters = { branch: "ALL", lecturer: "ALL" }) {
+  const branchFilter = filters?.branch || "ALL";
+  const lecturerFilter = filters?.lecturer || "ALL";
+  const slotIndexMap = getSlotIndexMap(data.slots);
+  const seenEntries = new Set();
+  let totalEntries = 0;
+
+  const slots = data.slots.map((slot, idx) => {
+    if (slot.kind === "break") {
+      return {
+        slot,
+        isBreak: true,
+        label: slot.label,
+        timeSpan: `${slot.start}–${slot.end}`,
+        durationStr: formatDuration(slot.start, slot.end),
+        entries: []
+      };
+    }
+
+    // Period slot: find all entries scheduled for this day & slot
+    const slotEntries = [];
+
+    data.classes.forEach(c => {
+      if (branchFilter !== "ALL" && c.branch !== branchFilter) return;
+
+      const coveringEntries = data.entries.filter(e => {
+        return e.day === day && e.classId === c.id && entryCoversSlot(e, idx, slotIndexMap);
+      });
+
+      for (const entry of coveringEntries) {
+        if (lecturerFilter !== "ALL") {
+          if (!entry.lecturers || !entry.lecturers.includes(lecturerFilter)) {
+            continue;
+          }
+        }
+
+        const startIdx = slotIndexMap.get(entry.startSlot);
+        const endIdx = slotIndexMap.get(entry.endSlot);
+
+        // Consolidate multi-slot entries to appear once at their start slot
+        if (idx === startIdx && !seenEntries.has(entry)) {
+          seenEntries.add(entry);
+          totalEntries++;
+          const spanStart = data.slots[startIdx];
+          const spanEnd = data.slots[endIdx];
+          slotEntries.push({
+            entry,
+            classId: c.id,
+            branch: c.branch,
+            sem: c.sem,
+            spanStartSlot: spanStart,
+            spanEndSlot: spanEnd,
+            spanTimeStr: `${spanStart.start}–${spanEnd.end}`,
+            duration: formatDuration(spanStart.start, spanEnd.end),
+            isMultiSlot: startIdx !== endIdx
+          });
+        }
+      }
+    });
+
+    return {
+      slot,
+      isBreak: false,
+      label: slot.label,
+      timeSpan: `${slot.start}–${slot.end}`,
+      durationStr: formatDuration(slot.start, slot.end),
+      entries: slotEntries
+    };
+  });
+
+  return {
+    day,
+    slots,
+    totalEntries
+  };
+}
+
+/**
+ * Pure search and multi-dimensional filtering for the EXPLORE screen.
+ * Supports: query, branch, sem, classId, lecturer, subject, day, activityType.
+ * Combines cleanly: e.g. branch="CS" AND sem="III" AND day="WED" AND activityType="lab".
+ */
+export function searchAndFilterEntries(data, criteria = {}) {
+  const query = (criteria.query || "").trim().toLowerCase();
+  const branchFilter = criteria.branch || "ALL";
+  const semFilter = criteria.sem || "ALL";
+  const classIdFilter = criteria.classId || "ALL";
+  const lecturerFilter = criteria.lecturer || "ALL";
+  const subjectFilter = criteria.subject || "ALL";
+  const dayFilter = criteria.day || "ALL";
+  const activityTypeFilter = criteria.activityType || "ALL";
+
+  const slotIndexMap = getSlotIndexMap(data.slots);
+  const classMap = new Map();
+  data.classes.forEach(c => classMap.set(c.id, c));
+
+  const matchingEntries = [];
+
+  data.entries.forEach(entry => {
+    const classInfo = classMap.get(entry.classId);
+    if (!classInfo) return;
+
+    // Filter by Branch
+    if (branchFilter !== "ALL" && classInfo.branch !== branchFilter) {
+      return;
+    }
+
+    // Filter by Semester
+    if (semFilter !== "ALL" && classInfo.sem !== semFilter) {
+      return;
+    }
+
+    // Filter by Class / Section
+    if (classIdFilter !== "ALL" && entry.classId !== classIdFilter) {
+      return;
+    }
+
+    // Filter by Day
+    if (dayFilter !== "ALL" && entry.day !== dayFilter) {
+      return;
+    }
+
+    // Filter by Activity Type (theory vs lab vs other)
+    if (activityTypeFilter !== "ALL" && entry.type !== activityTypeFilter) {
+      return;
+    }
+
+    // Filter by Subject
+    if (subjectFilter !== "ALL" && entry.subject.toLowerCase() !== subjectFilter.toLowerCase()) {
+      return;
+    }
+
+    // Filter by Faculty Member
+    if (lecturerFilter !== "ALL") {
+      if (!entry.lecturers || !entry.lecturers.includes(lecturerFilter)) {
+        return;
+      }
+    }
+
+    // Free text query
+    if (query) {
+      let matchesQuery = false;
+      if (entry.subject.toLowerCase().includes(query)) matchesQuery = true;
+      if (entry.classId.toLowerCase().includes(query)) matchesQuery = true;
+      if (entry.day.toLowerCase().includes(query)) matchesQuery = true;
+      if (classInfo.branch.toLowerCase().includes(query)) matchesQuery = true;
+
+      // Check lecturer name or initials
+      if (entry.lecturers) {
+        for (const init of entry.lecturers) {
+          if (init.toLowerCase().includes(query)) matchesQuery = true;
+          const lInfo = data.lecturers && data.lecturers[init];
+          if (lInfo && lInfo.name && lInfo.name.toLowerCase().includes(query)) {
+            matchesQuery = true;
+          }
+        }
+      }
+
+      if (!matchesQuery) return;
+    }
+
+    const startIdx = slotIndexMap.get(entry.startSlot) ?? 0;
+    const endIdx = slotIndexMap.get(entry.endSlot) ?? startIdx;
+    const spanStartSlot = data.slots[startIdx];
+    const spanEndSlot = data.slots[endIdx];
+
+    matchingEntries.push({
+      entry,
+      classId: entry.classId,
+      branch: classInfo.branch,
+      sem: classInfo.sem,
+      day: entry.day,
+      startIdx,
+      endIdx,
+      spanStartSlot,
+      spanEndSlot,
+      spanTimeStr: `${spanStartSlot.start}–${spanEndSlot.end}`,
+      duration: formatDuration(spanStartSlot.start, spanEndSlot.end),
+      isMultiSlot: startIdx !== endIdx
+    });
+  });
+
+  // Sort logically: Day -> Start Slot -> Class ID
+  matchingEntries.sort((a, b) => {
+    const dayOrderA = data.days.indexOf(a.day);
+    const dayOrderB = data.days.indexOf(b.day);
+    if (dayOrderA !== dayOrderB) return dayOrderA - dayOrderB;
+    if (a.startIdx !== b.startIdx) return a.startIdx - b.startIdx;
+    return a.classId.localeCompare(b.classId);
+  });
+
+  return {
+    totalMatches: matchingEntries.length,
+    results: matchingEntries
+  };
+}

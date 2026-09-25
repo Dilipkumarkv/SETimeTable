@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - Stage 3 — Phase 6: Final Polish, Accessibility & Production Delivery
+### Added
+- **Final Polish & Comprehensive Production Audit**:
+  - **Print Rendering Optimization (`styles.css`)**: Expanded `@media print` rules to cleanly suppress all interactive toolbars (`.week-toolbar`, `.explore-search-bar`, `.sim-active-indicator`, `.explore-filters-box`), preserving only pristine schedule cards and landscape matrix tables.
+  - **Accessibility & WAI-ARIA Verification (`index.html`)**: Validated semantic tablist, role attributes, accessible live clocks, high-contrast indicators, and touch target discipline ($\ge 44 \times 44$px).
+  - **Offline PWA Precache Complete Registry (`sw.js`)**: Verified all Stage 3 engine components (`ui-today.js`, `ui-week.js`, `ui-explore.js`, icons, manifest) are precached for 100% offline campus operation.
+  - **Complete Documentation Suite**: Updated `README.md`, `TECHNICAL_DESIGN.md`, and `DATA_HANDOFF.md` with complete operational and architectural guides.
+- **Automated Test Suite Expansion (`tests.js`)**:
+  - Added Group Q unit tests verifying print stylesheet rules, accessibility markup, PWA precache completeness, documentation cross-references, and sample data boundaries.
+  - Achieved **117 passed tests out of 117 tests (0 failures)** across 17 test groups (Groups A through Q).
+
+## [3.0.0-phase5] - Stage 3 — Phase 5: Real Data Preparation & Production Handoff Protocol
+### Added
+- **Production Data Template (`data.template.js`)**:
+  - Provided a pristine, zero-error production dataset template ready for real schedule entry by academic department heads and college administrators.
+  - Pre-populated with official SET Polytechnic academic classes (all 15 classes across CE, CS, EC, EE, ME), the standard 7-period daily bell schedule with designated lunch break, and complete faculty roster.
+- **Stand-Alone Command-Line Validator (`validate-cli.js`)**:
+  - Engineered terminal CLI validator (`node validate-cli.js [file]` or `npm run validate-data`) providing formatted diagnostic reports.
+  - Enforces zero referential integrity faults, zero illegal schedule overlaps, and strict bell schedule compliance before code deployment.
+- **Comprehensive Production Handoff Guide (`DATA_HANDOFF.md`)**:
+  - Documented 6-step protocol for backing up and replacing sample data with real institutional schedule.
+  - Detailed object structure rules, parallel multi-batch lab examples, and resolution guide for common validation errors.
+- **Sample Data Invariant & Safety**:
+  - Preserved `isSample: true` on active `data.js` to ensure the high-visibility sample data banner remains active until official real data deployment.
+- **Automated Test Suite Expansion (`tests.js`)**:
+  - Added Group P unit tests verifying template schema validity, CLI validator execution, handoff guide completeness, package.json scripts, and sample data invariants (total: 112 tests, 0 failures).
+
+## [3.0.0-phase4] - Stage 3 — Phase 4: Multi-Dimensional Search & Composable Filter Engine
+### Added
+- **Multi-Dimensional Search & Composable Filtering Engine (`ui-explore.js`, `time.js`, `styles.css`)**:
+  - Implemented the dedicated **`EXPLORE`** screen with instant free-text search matching subjects, faculty names, initials, branches, and class codes.
+  - Engineered pure multi-dimensional filtering across 7 key academic dimensions:
+    - **Branch** (CE, CS, EC, EE, ME)
+    - **Semester** (I, III, V)
+    - **Class / Section** (all 15 academic classes)
+    - **Faculty Member** (all staff initials/names)
+    - **Day** (MON through SAT)
+    - **Activity Type** (theory vs practical labs)
+    - **Subject**
+  - Fully composable filtering: cleanly combines multiple dimensions simultaneously (e.g. `Branch = CS` AND `Sem = III` AND `Day = MON` AND `Type = Lab`).
+  - Active filter chips with 1-tap surgical dismissal and global `Clear All Filters` button.
+  - Live session result count badge (`12 sessions found`).
+  - Calm, informative empty state with 1-tap `Reset All Filters` shortcut.
+  - Enforced strict 4-level result card hierarchy: 1. Subject/Activity, 2. Branch • Semester • Class, 3. Faculty with icon, 4. Day & Time range with duration; room kept as subtle secondary metadata.
+- **PWA Precache & Test Suite Expansion (`sw.js`, `tests.js`)**:
+  - Registered `ui-explore.js` in `sw.js` cache-v6.
+  - Added Group O automated unit tests in `tests.js` verifying free-text search, composable multi-dimensional filtering, semester-wide isolation, activity type filtering, zero-match behavior, and offline caching (total: 107 tests, 0 failures).
+
+## [3.0.0-phase3] - Stage 3 — Phase 3: Mobile-First Weekly Exploration & Schedule Navigator
+### Added
+- **Mobile-First WEEK Experience (`ui-week.js`, `time.js`, `styles.css`)**:
+  - Replaced the overwhelming 15-class desktop spreadsheet matrix on mobile with an intuitive chronological day feed.
+  - Implemented Monday–Saturday pill selector tabs (`MON`–`SAT`) with active highlight and `Today` badge for instant 1-tap weekday jumping.
+  - Multi-slot activities (labs spanning multiple periods) are consolidated to their start slot with complete span timing (`11:35–13:25 • 1h 50m`).
+  - Added exploration scopes:
+    - **All Classes**: What does Wednesday look like across departments?
+    - **By Class**: What is CSE III Sem doing this week?
+    - **By Faculty**: What is a specific professor's teaching schedule?
+  - Workload summary cards for faculty members (total sessions, theory periods, lab counts) and high-visibility collision warnings for parallel assignments.
+  - Preserved desktop/tablet matrix table view toggle (`📱 Feed` vs `📊 Grid`) with 1-tap print action.
+  - Added global NOW shortcut action (`⚡ Live Now`) returning the principal directly to the active college timeline.
+- **PWA Precache & Test Expansion (`sw.js`, `tests.js`)**:
+  - Registered `ui-week.js` in `sw.js` cache-v5.
+  - Added Group N automated unit tests in `tests.js` verifying mobile day feed generation, lab consolidation, branch/faculty filtering, tab structure, and offline precaching (total: 100 tests, 0 failures).
+
 ## [3.0.0-phase2] - Stage 3 — Phase 2: Principal Live Timetable Assistant & Continuous Timeline
 ### Added
 - **Continuous Chronological Timeline (`ui-today.js`, `time.js`, `styles.css`)**:
