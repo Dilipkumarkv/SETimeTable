@@ -688,3 +688,296 @@ export function getWeeklyWorkloadStats(weekData) {
 
   return { totalSessions, theoryCount, labCount };
 }
+
+/**
+ * Returns the continuous chronological timeline for the TODAY screen.
+ * Consolidates NOW, NEXT, BREAK, LATER TODAY, and DAY COMPLETE into one feed.
+ * Pure function: accepts (data, date).
+ */
+export function getTodayTimeline(data, date) {
+  const slotState = getSlotState(data, date);
+  const { status, day, currentSlot, nextSlot, timeStr } = slotState;
+  const isWorkingDay = data.days.includes(day);
+
+  // Determine next working day
+  const workingDays = data.days;
+  let nextWorkingDay = "MON";
+  const currentDayIdx = workingDays.indexOf(day);
+  if (currentDayIdx === -1) {
+    nextWorkingDay = workingDays[0];
+  } else {
+    nextWorkingDay = workingDays[(currentDayIdx + 1) % workingDays.length];
+  }
+
+  // Format human-readable date e.g. "Monday, 24 Sep"
+  const weekdayNames = {
+    SUN: "Sunday",
+    MON: "Monday",
+    TUE: "Tuesday",
+    WED: "Wednesday",
+    THU: "Thursday",
+    FRI: "Friday",
+    SAT: "Saturday"
+  };
+  const fullDayName = weekdayNames[day] || day;
+  const nextFullDayName = weekdayNames[nextWorkingDay] || nextWorkingDay;
+
+  const firstSlot = data.slots && data.slots.length > 0 ? data.slots[0] : null;
+  const lastSlot = data.slots && data.slots.length > 0 ? data.slots[data.slots.length - 1] : null;
+
+  // Build status summary text
+  let statusSummary = "";
+  if (!isWorkingDay) {
+    statusSummary = `College is closed today (${fullDayName}). Classes resume on ${nextFullDayName} at ${firstSlot ? firstSlot.start : "09:45"}.`;
+  } else if (status === "before") {
+    statusSummary = `College has not started yet. First period begins at ${firstSlot ? firstSlot.start : "09:45"}.`;
+  } else if (status === "after") {
+    statusSummary = `Today's schedule is complete. Classes resume on ${nextFullDayName} at ${firstSlot ? firstSlot.start : "09:45"}.`;
+  } else if (status === "break") {
+    const breakSlot = currentSlot || nextSlot;
+    const rem = breakSlot ? getTimeRemaining(breakSlot.end, timeStr) : null;
+    statusSummary = `${breakSlot?.label || "Break"} active (${breakSlot?.start}–${breakSlot?.end}${rem ? " • " + rem.text : ""}).`;
+  } else if (status === "in-period") {
+    const rem = currentSlot ? getTimeRemaining(currentSlot.end, timeStr) : null;
+    statusSummary = `Period ${currentSlot.label} active (${currentSlot.start}–${currentSlot.end}${rem ? " • " + rem.text : ""}).`;
+  }
+
+  if (!isWorkingDay || status === "closed") {
+    return {
+      status: "closed",
+      day,
+      fullDayName,
+      timeStr,
+      statusSummary,
+      currentSlot: null,
+      nextSlot: null,
+      nextWorkingDay,
+      nextFullDayName,
+      isWorkingDay: false,
+      nowSection: null,
+      timelineItems: []
+    };
+  }
+
+  if (status === "after") {
+    return {
+      status: "after",
+      day,
+      fullDayName,
+      timeStr,
+      statusSummary,
+      currentSlot: null,
+      nextSlot: null,
+      nextWorkingDay,
+      nextFullDayName,
+      isWorkingDay: true,
+      nowSection: null,
+      timelineItems: [
+        {
+          id: "item-complete",
+          type: "complete",
+          label: "Day Schedule Concluded",
+          timeSpan: `${lastSlot ? lastSlot.end : "16:30"}`,
+          statusSummary: `College concluded at ${lastSlot ? lastSlot.end : "16:30"}. Next working day: ${nextFullDayName} at ${firstSlot ? firstSlot.start : "09:45"}.`,
+          classes: []
+        }
+      ]
+    };
+  }
+
+  const slotIndexMap = getSlotIndexMap(data.slots);
+  const curMinutes = timeStringToMinutes(timeStr);
+  const currentSlotIdx = currentSlot ? slotIndexMap.get(currentSlot.id) : -1;
+
+  // Track multi-slot entries already rendered so they are consolidated to their start slot
+  const seenEntries = new Set();
+  const timelineItems = [];
+
+  // Iterate through slots to construct the continuous chronological feed
+  for (let idx = 0; idx < data.slots.length; idx++) {
+    const slot = data.slots[idx];
+    const sStart = timeStringToMinutes(slot.start);
+    const sEnd = timeStringToMinutes(slot.end);
+
+    // If slot has completely ended in the past, we skip it from the forward feed
+    if (sEnd <= curMinutes && idx !== currentSlotIdx) {
+      continue;
+    }
+
+    const isCurrent = idx === currentSlotIdx;
+    const isImmediateNext = (status === "in-period" && idx === currentSlotIdx + 1) ||
+                            (status === "break" && idx === (nextSlot ? slotIndexMap.get(nextSlot.id) : currentSlotIdx + 1)) ||
+                            (status === "before" && idx === 0);
+
+    let itemType = "later";
+    if (isCurrent) {
+      itemType = slot.kind === "break" ? "break" : "now";
+    } else if (isImmediateNext) {
+      itemType = "next";
+    } else if (slot.kind === "break") {
+      itemType = "break";
+    }
+
+    if (slot.kind === "break") {
+      const isNowBreak = isCurrent;
+      const breakRemaining = isNowBreak ? getTimeRemaining(slot.end, timeStr) : null;
+      timelineItems.push({
+        id: `slot-${slot.id}`,
+        type: isNowBreak ? "now" : "break",
+        isBreak: true,
+        slot,
+        label: slot.label,
+        timeSpan: `${slot.start}–${slot.end}`,
+        durationStr: formatDuration(slot.start, slot.end),
+        timeRemaining: breakRemaining,
+        relativeTime: !isNowBreak ? getRelativeSlotTime(slot.start, timeStr, false, day) : "",
+        classes: []
+      });
+      continue;
+    }
+
+    // Teaching period: Gather classes scheduled in this slot
+    const classResults = data.classes.map(c => {
+      const coveringEntries = data.entries.filter(e => {
+        return e.day === day && e.classId === c.id && entryCoversSlot(e, idx, slotIndexMap);
+      });
+
+      const visibleEntries = [];
+      for (const entry of coveringEntries) {
+        const startIdx = slotIndexMap.get(entry.startSlot);
+        const endIdx = slotIndexMap.get(entry.endSlot);
+
+        // Effective display slot for this entry:
+        // If the entry started in a previous slot that is still active now, display it under 'now'
+        const effectiveDisplayIdx = Math.max(startIdx, Math.max(0, currentSlotIdx));
+
+        if (idx === effectiveDisplayIdx && !seenEntries.has(entry)) {
+          seenEntries.add(entry);
+          const spanStart = data.slots[startIdx];
+          const spanEnd = data.slots[endIdx];
+          visibleEntries.push({
+            entry,
+            spanStartSlot: spanStart,
+            spanEndSlot: spanEnd,
+            spanTimeStr: `${spanStart.start}–${spanEnd.end}`,
+            duration: formatDuration(spanStart.start, spanEnd.end),
+            isSpanStart: idx === startIdx
+          });
+        }
+      }
+
+      return {
+        classId: c.id,
+        branch: c.branch,
+        sem: c.sem,
+        isFree: visibleEntries.length === 0,
+        entries: visibleEntries
+      };
+    });
+
+    // Compute time countdown
+    let timeRemaining = null;
+    let relativeTime = "";
+    if (itemType === "now") {
+      timeRemaining = getTimeRemaining(slot.end, timeStr);
+    } else {
+      relativeTime = getRelativeSlotTime(slot.start, timeStr, false, day);
+    }
+
+    timelineItems.push({
+      id: `slot-${slot.id}`,
+      type: itemType,
+      isBreak: false,
+      slot,
+      label: slot.label,
+      timeSpan: `${slot.start}–${slot.end}`,
+      durationStr: formatDuration(slot.start, slot.end),
+      timeRemaining,
+      relativeTime,
+      classes: classResults
+    });
+  }
+
+  // Append Day Complete marker at the end of the timeline
+  timelineItems.push({
+    id: "item-complete",
+    type: "complete",
+    isBreak: false,
+    slot: null,
+    label: "Day Complete",
+    timeSpan: lastSlot ? lastSlot.end : "16:30",
+    statusSummary: `College concludes at ${lastSlot ? lastSlot.end : "16:30"}. Next working day: ${nextFullDayName} at ${firstSlot ? firstSlot.start : "09:45"}.`,
+    classes: []
+  });
+
+  return {
+    status,
+    day,
+    fullDayName,
+    timeStr,
+    statusSummary,
+    currentSlot,
+    nextSlot,
+    nextWorkingDay,
+    nextFullDayName,
+    isWorkingDay: true,
+    nowSection: timelineItems.find(item => item.type === "now") || null,
+    timelineItems
+  };
+}
+
+/**
+ * Filters the continuous timeline by branch and lecturer.
+ * Returns a cloned timeline with filtered classes.
+ */
+export function filterTodayTimeline(timeline, filters) {
+  if (!timeline || !timeline.timelineItems) return timeline;
+  const branchFilter = filters?.branch || "ALL";
+  const lecturerFilter = filters?.lecturer || "ALL";
+
+  if (branchFilter === "ALL" && lecturerFilter === "ALL") {
+    return timeline;
+  }
+
+  const filteredItems = timeline.timelineItems.map(item => {
+    if (item.type === "complete" || item.isBreak) {
+      return item;
+    }
+
+    const filteredClasses = item.classes.map(cls => {
+      // Check branch
+      if (branchFilter !== "ALL" && cls.branch !== branchFilter) {
+        return null;
+      }
+
+      // Check lecturer across visible entries
+      if (lecturerFilter === "ALL") {
+        return cls;
+      }
+
+      const matchingEntries = cls.entries.filter(e => {
+        return e.entry.lecturers && e.entry.lecturers.includes(lecturerFilter);
+      });
+
+      if (matchingEntries.length === 0) {
+        return null;
+      }
+
+      return {
+        ...cls,
+        entries: matchingEntries,
+        isFree: false
+      };
+    }).filter(Boolean);
+
+    return {
+      ...item,
+      classes: filteredClasses
+    };
+  });
+
+  return {
+    ...timeline,
+    timelineItems: filteredItems
+  };
+}

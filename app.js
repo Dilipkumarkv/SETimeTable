@@ -5,6 +5,8 @@ import {
   getSlotState,
   getCurrentEntries,
   getUpcomingEntries,
+  getTodayTimeline,
+  filterTodayTimeline,
   getDayGrid,
   getClassWeek,
   getLecturerWeek,
@@ -12,13 +14,14 @@ import {
   filterUpcomingEntries,
   filterDayGrid
 } from "./time.js";
+import { renderTodayView } from "./ui-today.js";
 import { renderNowView } from "./ui-now.js";
 import { renderNextView } from "./ui-next.js";
 import { renderOverviewView } from "./ui-overview.js";
 
 // Global application state (Filters in memory only)
 const state = {
-  activeTab: "now",
+  activeTab: "today",
   isSimulating: false,
   simDay: "MON",
   simTime: "12:00",
@@ -43,6 +46,8 @@ window.TimetableApp = {
   getSlotState,
   getCurrentEntries,
   getUpcomingEntries,
+  getTodayTimeline,
+  filterTodayTimeline,
   getDayGrid,
   getClassWeek,
   getLecturerWeek,
@@ -90,8 +95,10 @@ window.TimetableApp = {
   },
   resetSimulation() {
     state.isSimulating = false;
-    document.getElementById("sim-day").value = "MON";
-    document.getElementById("sim-time").value = "12:00";
+    const simDaySelect = document.getElementById("sim-day");
+    const simTimeInput = document.getElementById("sim-time");
+    if (simDaySelect) simDaySelect.value = "MON";
+    if (simTimeInput) simTimeInput.value = "12:00";
     updateHeaderClock();
     renderCurrentTab();
   }
@@ -129,16 +136,26 @@ function updateHeaderClock() {
   const h = String(effDate.getHours()).padStart(2, "0");
   const m = String(effDate.getMinutes()).padStart(2, "0");
 
+  const simActiveBadge = document.getElementById("sim-active-badge");
+  const simActiveText = document.getElementById("sim-active-text");
+
   if (state.isSimulating) {
     clockEl.innerHTML = `<span class="live-indicator sim-indicator"></span>SIM: ${dayName} ${h}:${m}`;
+    if (simActiveBadge) {
+      simActiveBadge.style.display = "flex";
+      if (simActiveText) simActiveText.textContent = `${state.simDay} ${state.simTime}`;
+    }
   } else {
     clockEl.innerHTML = `<span class="live-indicator"></span>${dayName} ${h}:${m}`;
+    if (simActiveBadge) {
+      simActiveBadge.style.display = "none";
+    }
   }
 }
 
 /**
  * Renders the global filter bar for Branch and Lecturer.
- * Filter applies to Now, Next, and Day overview.
+ * Filter applies to Today and Day overview.
  * Hidden on Week overview and diagnostic errors.
  */
 function renderFilterBar() {
@@ -146,8 +163,9 @@ function renderFilterBar() {
   if (!filterContainer) return;
 
   const isVisibleTab = (
+    state.activeTab === "today" ||
     state.activeTab === "now" ||
-    state.activeTab === "next" ||
+    (state.activeTab === "week" && state.overviewState.mode === "day") ||
     (state.activeTab === "overview" && state.overviewState.mode === "day")
   );
 
@@ -268,11 +286,9 @@ function renderCurrentTab() {
     return;
   }
 
-  if (state.activeTab === "now") {
-    renderNowView(mainContent, state.data, effDate, state.nowSearchQuery, state.filters);
-  } else if (state.activeTab === "next") {
-    renderNextView(mainContent, state.data, effDate, state.filters);
-  } else if (state.activeTab === "overview") {
+  if (state.activeTab === "today" || state.activeTab === "now") {
+    renderTodayView(mainContent, state.data, effDate, state.filters);
+  } else if (state.activeTab === "week" || state.activeTab === "overview") {
     renderOverviewView(
       mainContent,
       state.data,
@@ -284,6 +300,8 @@ function renderCurrentTab() {
       },
       state.filters
     );
+  } else if (state.activeTab === "explore" || state.activeTab === "next") {
+    renderNextView(mainContent, state.data, effDate, state.filters);
   }
 }
 
@@ -340,6 +358,23 @@ function setupEventListeners() {
       renderCurrentTab();
     });
   });
+
+  // Top Header Dev Toggle & Quick Reset
+  const toggleSimBtn = document.getElementById("toggle-sim-btn");
+  const simPanel = document.getElementById("sim-panel");
+  if (toggleSimBtn && simPanel) {
+    toggleSimBtn.addEventListener("click", () => {
+      const isCollapsed = simPanel.classList.toggle("collapsed");
+      toggleSimBtn.setAttribute("aria-expanded", String(!isCollapsed));
+    });
+  }
+
+  const quickResetBtn = document.getElementById("btn-quick-reset-sim");
+  if (quickResetBtn) {
+    quickResetBtn.addEventListener("click", () => {
+      window.TimetableApp.resetSimulation();
+    });
+  }
 
   // Time simulation collapsible toggle (clickable & keyboard accessible)
   const simHeader = document.getElementById("sim-header");

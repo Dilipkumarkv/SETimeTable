@@ -23,6 +23,8 @@ import {
   getSlotState,
   getCurrentEntries,
   getUpcomingEntries,
+  getTodayTimeline,
+  filterTodayTimeline,
   getDayGrid,
   getClassWeek,
   getLecturerWeek,
@@ -1032,11 +1034,12 @@ export async function runAllTests() {
 
   // Test J5: Icon-Augmented Bottom Navigation Bar with WAI-ARIA
   const hasNavIcons = indexHtml.includes("<svg") && indexHtml.includes("nav-tab-icon");
-  const hasNowNextOverview = indexHtml.includes("Now") && indexHtml.includes("Next") && indexHtml.includes("Overview");
+  const hasNavLabels = (indexHtml.includes("Today") && indexHtml.includes("Week") && indexHtml.includes("Explore")) ||
+                       (indexHtml.includes("Now") && indexHtml.includes("Next") && indexHtml.includes("Overview"));
   assert(
     "Navigation: Bottom navigation bar includes inline SVG icons and semantic text labels",
-    hasNavIcons && hasNowNextOverview,
-    `SVG icons: ${hasNavIcons}, tab labels: ${hasNowNextOverview}`
+    hasNavIcons && hasNavLabels,
+    `SVG icons: ${hasNavIcons}, tab labels: ${hasNavLabels}`
   );
 
   // Test J6: Horizontal Scroll Branch Chips in Filter Bar
@@ -1177,6 +1180,102 @@ export async function runAllTests() {
     "Production Integrity: Final timetable dataset maintains 0 schema validation errors or referential integrity faults",
     prodValidationErrors.length === 0,
     `Errors found: ${prodValidationErrors.length}`
+  );
+
+  // -------------------------------------------------------------
+  // Group M: Stage 3 — Phase 2 TODAY Continuous Timeline & Principal UX
+  // -------------------------------------------------------------
+
+  // Test M1: Continuous Timeline Generation during Active Period
+  const mon12Timeline = getTodayTimeline(TIMETABLE, mon12Date); // MON 12:00 (P3 active)
+  const hasNowItem = mon12Timeline.timelineItems.some(i => i.type === "now" && i.slot?.id === "P3");
+  const hasCompleteMarker = mon12Timeline.timelineItems.some(i => i.type === "complete");
+  const hasBreakItem = mon12Timeline.timelineItems.some(i => i.isBreak && i.slot?.id === "LUNCH");
+
+  assert(
+    "TODAY Continuous Timeline: Consolidates NOW, BREAK, LATER periods, and DAY COMPLETE into one sequential feed",
+    mon12Timeline.status === "in-period" && hasNowItem && hasBreakItem && hasCompleteMarker,
+    `status: ${mon12Timeline.status}, hasNow: ${hasNowItem}, hasBreak: ${hasBreakItem}, hasComplete: ${hasCompleteMarker}`
+  );
+
+  // Test M2: Multi-slot Lab Consolidation in Timeline
+  const p3Block = mon12Timeline.timelineItems.find(i => i.slot?.id === "P3");
+  const cs3LabInP3 = p3Block?.classes.find(c => c.classId === "CS-III");
+  const firstLabEntry = cs3LabInP3?.entries[0];
+  const isConsolidatedSpan = firstLabEntry?.spanTimeStr === "11:35–13:25" && firstLabEntry?.duration === "1h 50m";
+
+  assert(
+    "TODAY Entry Hierarchy: Multi-slot lab entries consolidate to full time span ('11:35–13:25 • 1h 50m') at start slot",
+    isConsolidatedSpan,
+    `spanTimeStr: ${firstLabEntry?.spanTimeStr}, duration: ${firstLabEntry?.duration}`
+  );
+
+  // Test M3: Break / Lunch Time State Representation
+  const lunchFixtureDate = createDate("MON", 13, 30, 0); // MON 13:30 (Lunch)
+  const lunchTimeline = getTodayTimeline(TIMETABLE, lunchFixtureDate);
+  const activeBreakBlock = lunchTimeline.timelineItems.find(i => i.isBreak && i.type === "now");
+
+  assert(
+    "TODAY Time States: Lunch break (13:25–14:00) represents active BREAK state with countdown without error",
+    lunchTimeline.status === "break" && activeBreakBlock && activeBreakBlock.timeRemaining?.text.includes("left"),
+    `status: ${lunchTimeline.status}, countdown: ${activeBreakBlock?.timeRemaining?.text}`
+  );
+
+  // Test M4: Before College Time State Representation
+  const beforeFixtureDate = createDate("MON", 8, 30, 0); // MON 08:30 (Before college)
+  const beforeTimeline = getTodayTimeline(TIMETABLE, beforeFixtureDate);
+  const startsAtP1 = beforeTimeline.timelineItems[0]?.slot?.id === "P1";
+
+  assert(
+    "TODAY Time States: Before college (08:30) informs that college has not started and shows today's full timeline starting with P1",
+    beforeTimeline.status === "before" && beforeTimeline.statusSummary.includes("09:45") && startsAtP1,
+    `status: ${beforeTimeline.status}, summary: ${beforeTimeline.statusSummary}, firstSlot: ${beforeTimeline.timelineItems[0]?.slot?.id}`
+  );
+
+  // Test M5: After College Time State & Next Working Day Rollover
+  const afterFixtureDate = createDate("MON", 17, 0, 0); // MON 17:00 (After last period)
+  const afterTimeline = getTodayTimeline(TIMETABLE, afterFixtureDate);
+
+  assert(
+    "TODAY Time States: After college (17:00) marks schedule complete and identifies next working day (Tuesday at 09:45)",
+    afterTimeline.status === "after" && afterTimeline.nextFullDayName === "Tuesday" && afterTimeline.statusSummary.includes("Tuesday"),
+    `status: ${afterTimeline.status}, nextDay: ${afterTimeline.nextFullDayName}, summary: ${afterTimeline.statusSummary}`
+  );
+
+  // Test M6: Sunday / Non-working Day State
+  const sunDate = createDate("SUN", 11, 0, 0); // Sunday 11:00
+  const sunTimeline = getTodayTimeline(TIMETABLE, sunDate);
+
+  assert(
+    "TODAY Time States: Sunday displays calm informational closed state and specifies Monday 09:45 resumption",
+    sunTimeline.status === "closed" && sunTimeline.isWorkingDay === false && sunTimeline.nextFullDayName === "Monday",
+    `status: ${sunTimeline.status}, isWorkingDay: ${sunTimeline.isWorkingDay}, nextDay: ${sunTimeline.nextFullDayName}`
+  );
+
+  // Test M7: Composable Filtering on Continuous Timeline (Branch & Faculty)
+  const csFilteredTimeline = filterTodayTimeline(mon12Timeline, { branch: "CS", lecturer: "ALL" });
+  const p3CsClasses = csFilteredTimeline.timelineItems.find(i => i.slot?.id === "P3")?.classes || [];
+  const onlyCsClasses = p3CsClasses.length > 0 && p3CsClasses.every(c => c.branch === "CS");
+
+  const rblFilteredTimeline = filterTodayTimeline(mon12Timeline, { branch: "ALL", lecturer: "RBL" });
+  const p3RblClasses = rblFilteredTimeline.timelineItems.find(i => i.slot?.id === "P3")?.classes || [];
+  const onlyRblTaught = p3RblClasses.length === 1 && p3RblClasses[0].entries.every(e => e.entry.lecturers.includes("RBL"));
+
+  assert(
+    "TODAY Filters: filterTodayTimeline correctly filters continuous feed by Branch ('CS') and Faculty ('RBL')",
+    onlyCsClasses && onlyRblTaught,
+    `onlyCsClasses: ${onlyCsClasses}, onlyRblTaught: ${onlyRblTaught}`
+  );
+
+  // Test M8: Discreet Developer Simulation Panel
+  const hasDevToggleBtn = indexHtml.includes("toggle-sim-btn");
+  const simPanelCollapsed = indexHtml.includes("sim-panel-collapsible collapsed");
+  const hasSimActiveBadge = indexHtml.includes("sim-active-badge");
+
+  assert(
+    "Developer Tools: Simulation panel is discreetly collapsible (.collapsed) with dedicated header toggle to prevent UI clutter",
+    hasDevToggleBtn && simPanelCollapsed && hasSimActiveBadge,
+    `toggleBtn: ${hasDevToggleBtn}, collapsed: ${simPanelCollapsed}, activeBadge: ${hasSimActiveBadge}`
   );
 
   return results;

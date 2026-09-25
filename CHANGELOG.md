@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-phase2] - Stage 3 — Phase 2: Principal Live Timetable Assistant & Continuous Timeline
+### Added
+- **Continuous Chronological Timeline (`ui-today.js`, `time.js`, `styles.css`)**:
+  - Replaced the fragmented NOW / NEXT mental model with ONE continuous scrollable feed: `NOW` -> `NEXT` -> `BREAK` -> `LATER TODAY` -> `DAY COMPLETE`.
+  - Implemented concise status summary header answering college state in 2-3 seconds without oversized dashboard widgets.
+  - Implemented clearly distinguished active `NOW` period with high-contrast accent indicator, subtle background, `NOW` badge, and live countdown.
+  - Enforced strict card entry hierarchy: 1. Subject/Activity, 2. Branch • Semester • Class, 3. Faculty, 4. Time & Duration; room metadata kept non-prominent.
+  - Added full support for institutional time states: Before-college, Active period, Break/Lunch with countdown, After-college with next working day rollover, and Sunday/Holiday closure.
+  - Preserved multi-slot lab consolidation (e.g. `11:35–13:25 • 1h 50m`) to start slot.
+- **Navigation Redesign (`index.html`, `app.js`)**:
+  - Replaced legacy tabs with mobile-first `Today`, `Week`, `Explore` bottom navigation.
+  - Provided backwards-compatible routing and state preservation.
+- **De-cluttered Executive Interface & Developer Tooling**:
+  - Transformed prominent time simulation controls into a discreet collapsible developer drawer (`.collapsed` by default) accessible via header `⚙️ Dev` toggle.
+  - Added non-intrusive active simulation pill with 1-tap clock reset.
+- **PWA Precache & Test Suite Expansion**:
+  - Registered `ui-today.js` in `sw.js` cache-v4.
+  - Added Group M automated unit tests in `tests.js` verifying timeline feed generation, lab consolidation, time states, composable filtering, and dev panel behavior (total: 95 tests, 0 failures).
+
 ## [2.0.0] - Stage 2 — Phase 4: Final Polish, Print Presentation & Production Delivery
 ### Added
 - **Institutional Print Stylesheet & Presentation Mode (`styles.css`, `ui-overview.js`)**:
