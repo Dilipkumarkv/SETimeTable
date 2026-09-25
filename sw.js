@@ -1,6 +1,6 @@
 // Phase 6: Service Worker for Offline Timetable PWA
 // Versioned cache name: Bumping this version updates assets for all installed users
-const CACHE_NAME = "timetable-cache-v6";
+const CACHE_NAME = "timetable-cache-v10";
 
 // Explicit precache list of all application files using strictly relative paths
 const PRECACHE_ASSETS = [
@@ -25,13 +25,12 @@ const PRECACHE_ASSETS = [
   "./icons/icon.svg"
 ];
 
-// Install Event: Precaches every application asset and immediately prepares worker
+// Install Event: Precaches every application asset and immediately activates
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_ASSETS);
-    }).then(() => {
-      return self.skipWaiting();
     })
   );
 });
@@ -47,42 +46,50 @@ self.addEventListener("activate", (event) => {
       );
     }).then(() => {
       return self.clients.claim();
+    }).then(() => {
+      // Force any active browser tabs to refresh to the latest network shell immediately
+      return self.clients.matchAll({ type: "window" }).then((clients) => {
+        clients.forEach((client) => {
+          if (client.navigate) {
+            client.navigate(client.url);
+          }
+        });
+      });
     })
   );
 });
 
-// Fetch Event: Strict Cache-First strategy for instant offline capability
+// Fetch Event: Network-First strategy with Cache Fallback
+// When connected, fetches fresh resources from network and updates cache.
+// When offline on campus, serves instantly from cache.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      // If not in cache, fetch from network
-      return fetch(event.request)
-        .then((networkResponse) => {
-          if (
-            networkResponse &&
-            networkResponse.status === 200 &&
-            (networkResponse.type === "basic" || networkResponse.type === "cors")
-          ) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (
+          networkResponse &&
+          networkResponse.status === 200 &&
+          (networkResponse.type === "basic" || networkResponse.type === "cors")
+        ) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
           }
-          return networkResponse;
-        })
-        .catch(() => {
-          // If offline and navigating to a page, serve the cached index shell
           if (event.request.mode === "navigate") {
             return caches.match("./index.html") || caches.match("./");
           }
         });
-    })
+      })
   );
 });
 

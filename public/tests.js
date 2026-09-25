@@ -23,12 +23,20 @@ import {
   getSlotState,
   getCurrentEntries,
   getUpcomingEntries,
+  getTodayTimeline,
+  filterTodayTimeline,
+  getDayFeed,
   getDayGrid,
   getClassWeek,
   getLecturerWeek,
   filterCurrentEntries,
   filterUpcomingEntries,
-  filterDayGrid
+  filterDayGrid,
+  searchAndFilterEntries,
+  formatDuration,
+  getTimeRemaining,
+  getRelativeSlotTime,
+  getWeeklyWorkloadStats
 } from "./time.js";
 
 export async function runAllTests() {
@@ -966,7 +974,7 @@ export async function runAllTests() {
 
   // Test I6: GitHub Pages Portability - Strict relative URLs in index.html
   const hasRelativeManifest = indexHtml.includes('href="./manifest.webmanifest"');
-  const hasRelativeCss = indexHtml.includes('href="./styles.css"');
+  const hasRelativeCss = indexHtml.includes('href="./styles.css"') || indexHtml.includes('href="./styles.css?v=');
   const hasRelativeAppJs = indexHtml.includes('src="./app.js"');
   const noAbsoluteRootLinks = !indexHtml.includes('href="/styles.css"') && !indexHtml.includes('src="/app.js"');
 
@@ -974,6 +982,569 @@ export async function runAllTests() {
     "Deployment (§3.4 & §7): HTML entrypoint strictly uses relative paths (./) for seamless GitHub Pages hosting",
     hasRelativeManifest && hasRelativeCss && hasRelativeAppJs && noAbsoluteRootLinks,
     `manifest: ${hasRelativeManifest}, css: ${hasRelativeCss}, app.js: ${hasRelativeAppJs}, no root paths: ${noAbsoluteRootLinks}`
+  );
+
+  // -------------------------------------------------------------
+  // Group J: Stage 2 — Phase 2 Design System & CSS Overhaul
+  // -------------------------------------------------------------
+
+  // Test J1: CSS Design Tokens - Branch Accent Tokens in styles.css
+  const hasBranchTokens = [
+    "--branch-ce",
+    "--branch-cs",
+    "--branch-ec",
+    "--branch-ee",
+    "--branch-me"
+  ].every(token => stylesCss.includes(token));
+
+  assert(
+    "Design System: styles.css specifies branch accent tokens for all 5 academic branches (CE, CS, EC, EE, ME)",
+    hasBranchTokens,
+    `Branch tokens found in :root: ${hasBranchTokens}`
+  );
+
+  // Test J2: Branch Left Border Accent Strips on Class Cards
+  const hasBranchCardStrips = [
+    "branch-ce",
+    "branch-cs",
+    "branch-ec",
+    "branch-ee",
+    "branch-me"
+  ].every(cls => stylesCss.includes(cls));
+
+  assert(
+    "Design System: Class cards feature 3-4px solid left indicator strips color-coded per branch",
+    hasBranchCardStrips,
+    `Branch card classes found: ${hasBranchCardStrips}`
+  );
+
+  // Test J3: Branch Badge Pills
+  const hasBranchPills = stylesCss.includes(".branch-pill") && stylesCss.includes(".branch-pill-cs");
+  assert(
+    "Design System: styles.css includes high-contrast, rounded branch badge pills (.branch-pill)",
+    hasBranchPills,
+    `Branch pill classes defined: ${hasBranchPills}`
+  );
+
+  // Test J4: Minimum Tap Target Discipline (>= 44px)
+  const has44pxButtons = stylesCss.includes("min-height: 44px;");
+  assert(
+    "Ergonomics: Minimum 44px tap target is strictly enforced across buttons, selects, and inputs",
+    has44pxButtons,
+    `min-height 44px rules present: ${has44pxButtons}`
+  );
+
+  // Test J5: Icon-Augmented Bottom Navigation Bar with WAI-ARIA
+  const hasNavIcons = indexHtml.includes("<svg") && indexHtml.includes("nav-tab-icon");
+  const hasNavLabels = (indexHtml.includes("Today") && indexHtml.includes("Week") && indexHtml.includes("Explore")) ||
+                       (indexHtml.includes("Now") && indexHtml.includes("Next") && indexHtml.includes("Overview"));
+  assert(
+    "Navigation: Bottom navigation bar includes inline SVG icons and semantic text labels",
+    hasNavIcons && hasNavLabels,
+    `SVG icons: ${hasNavIcons}, tab labels: ${hasNavLabels}`
+  );
+
+  // Test J6: Horizontal Scroll Branch Chips in Filter Bar
+  const hasHorizontalChips = stylesCss.includes("overflow-x: auto") && stylesCss.includes(".filter-branch-group");
+  assert(
+    "Ergonomics: Filter bar uses smooth horizontal scrolling chips (.filter-branch-group) to prevent awkward wrapping",
+    hasHorizontalChips,
+    `Horizontal chip scrolling defined: ${hasHorizontalChips}`
+  );
+
+  // -------------------------------------------------------------
+  // Group K: Stage 2 — Phase 3 View-Specific Refinements & Micro-Interactions
+  // -------------------------------------------------------------
+
+  // Test K1: Pure Duration Formatting for Multi-Slot Labs
+  const dur1 = formatDuration("11:35", "13:25"); // 1h 50m
+  const dur2 = formatDuration("14:00", "15:40"); // 1h 40m
+  const dur3 = formatDuration("09:45", "10:40"); // 55m
+  const dur4 = formatDuration("10:00", "12:00"); // 2h
+  const validDurations = (dur1 === "1h 50m") && (dur2 === "1h 40m") && (dur3 === "55m") && (dur4 === "2h");
+
+  assert(
+    "Micro-Interactions: formatDuration() calculates hours and minutes correctly for multi-slot spans",
+    validDurations,
+    `dur1: ${dur1}, dur2: ${dur2}, dur3: ${dur3}, dur4: ${dur4}`
+  );
+
+  // Test K2: Time Remaining & Countdown Computations
+  const rem1 = getTimeRemaining("12:30", "12:00");
+  const rem2 = getTimeRemaining("12:00", "12:00");
+  const rem3 = getTimeRemaining("13:25", "11:35");
+  const validRemaining = (rem1.diffMins === 30 && rem1.text === "30m left") &&
+    (rem2.text === "Ending now") &&
+    (rem3.diffMins === 110 && rem3.text === "1h 50m left");
+
+  assert(
+    "Micro-Interactions: getTimeRemaining() returns exact countdown minutes and human-readable text",
+    validRemaining,
+    `rem1: ${rem1.text}, rem2: ${rem2.text}, rem3: ${rem3.text}`
+  );
+
+  // Test K3: Relative Upcoming Slot Time Helper
+  const relToday = getRelativeSlotTime("14:00", "13:35", false, "MON");
+  const relTomorrow = getRelativeSlotTime("09:45", "17:00", true, "TUE");
+  const validRelativeTimes = (relToday === "In 25m") && (relTomorrow === "Tomorrow at 09:45");
+
+  assert(
+    "Micro-Interactions: getRelativeSlotTime() renders accurate relative countdowns and tomorrow schedule headers",
+    validRelativeTimes,
+    `relToday: ${relToday}, relTomorrow: ${relTomorrow}`
+  );
+
+  // Test K4: Weekly Workload Statistics Aggregator
+  const cs3Week = getClassWeek(TIMETABLE, "CS-III");
+  const cs3Stats = getWeeklyWorkloadStats(cs3Week);
+  const vmWeek = getLecturerWeek(TIMETABLE, "VM");
+  const vmStats = getWeeklyWorkloadStats(vmWeek);
+  const validStats = (cs3Stats.totalSessions > 0) && (cs3Stats.theoryCount >= 0) && (cs3Stats.labCount >= 0) &&
+    (vmStats.totalSessions > 0);
+
+  assert(
+    "Micro-Interactions: getWeeklyWorkloadStats() aggregates weekly sessions, theory periods, and lab counts",
+    validStats,
+    `CS-III: ${cs3Stats.totalSessions} sessions (${cs3Stats.theoryCount} theory, ${cs3Stats.labCount} labs)`
+  );
+
+  // Test K5: Time Simulation Presets in Shell UI
+  const hasSimPresets = indexHtml.includes("sim-presets-chips") && indexHtml.includes("sim-preset-btn");
+  const simPresetCount = (indexHtml.match(/class="sim-preset-btn"/g) || []).length;
+
+  assert(
+    "Micro-Interactions: index.html contains instant simulation quick-preset buttons (>= 6 presets)",
+    hasSimPresets && simPresetCount >= 6,
+    `Preset chips present: ${hasSimPresets}, preset count: ${simPresetCount}`
+  );
+
+  // Test K6: Individual Active Filter Dismissal Chips in app.js
+  const appJsContent = await fetch("./app.js").then(r => r.text()).catch(() => "");
+  const hasFilterDismiss = appJsContent.includes("filter-dismiss-chip") && appJsContent.includes("data-clear");
+
+  assert(
+    "Micro-Interactions: app.js supports surgical individual active filter dismissal (Branch / Faculty)",
+    hasFilterDismiss,
+    `Dismiss chip support in app.js: ${hasFilterDismiss}`
+  );
+
+  // Test K7: Search Clear Button & Quick-Jump Department Navigation in ui-now.js
+  const uiNowContent = await fetch("./ui-now.js").then(r => r.text()).catch(() => "");
+  const hasSearchClear = uiNowContent.includes("search-clear-btn") && uiNowContent.includes("now-search-count");
+  const hasBranchJump = uiNowContent.includes("branch-jump-bar") && uiNowContent.includes("branch-jump-chip");
+
+  assert(
+    "Micro-Interactions: ui-now.js integrates 1-tap search clear (×), live result counts, and branch quick-jump navigation",
+    hasSearchClear && hasBranchJump,
+    `searchClear: ${hasSearchClear}, branchJump: ${hasBranchJump}`
+  );
+
+  // -------------------------------------------------------------
+  // Group L: Stage 2 — Phase 4 Final Polish, Presentation & Production Audit
+  // -------------------------------------------------------------
+
+  // Test L1: Print Media Stylesheet Invariants in styles.css
+  const hasMediaPrint = stylesCss.includes("@media print");
+  const hidesChromeOnPrint = stylesCss.includes(".bottom-nav") && stylesCss.includes("display: none !important;");
+  const avoidsRowPageBreak = stylesCss.includes("page-break-inside: avoid !important;");
+
+  assert(
+    "Production Polish: styles.css contains @media print rules suppressing app chrome and preventing broken row page breaks",
+    hasMediaPrint && hidesChromeOnPrint && avoidsRowPageBreak,
+    `hasMediaPrint: ${hasMediaPrint}, hidesChrome: ${hidesChromeOnPrint}, avoidsRowPageBreak: ${avoidsRowPageBreak}`
+  );
+
+  // Test L2: Print Schedule Action in ui-overview.js
+  const uiOverviewContent = await fetch("./ui-overview.js").then(r => r.text()).catch(() => "");
+  const hasPrintButton = uiOverviewContent.includes("btn-print-schedule") && uiOverviewContent.includes("window.print()");
+
+  assert(
+    "Production Polish: ui-overview.js provides 1-tap print action buttons calling window.print() for Day and Week grids",
+    hasPrintButton,
+    `Print button wired: ${hasPrintButton}`
+  );
+
+  // Test L3: Metadata & Head OpenGraph Uniformity
+  const metadataJson = await fetch("./metadata.json").then(r => r.json()).catch(() => ({}));
+  const htmlHasTitle = indexHtml.includes(`<title>${metadataJson.name}</title>`);
+  const htmlHasDesc = indexHtml.includes(metadataJson.description);
+
+  assert(
+    "Production Polish: index.html title and meta description strictly match metadata.json without placeholders",
+    htmlHasTitle && htmlHasDesc,
+    `htmlHasTitle: ${htmlHasTitle}, htmlHasDesc: ${htmlHasDesc}`
+  );
+
+  // Test L4: Comprehensive Timetable Production Validation
+  const prodValidationErrors = validateTimetable(TIMETABLE).filter(e => e.level === "error");
+
+  assert(
+    "Production Integrity: Final timetable dataset maintains 0 schema validation errors or referential integrity faults",
+    prodValidationErrors.length === 0,
+    `Errors found: ${prodValidationErrors.length}`
+  );
+
+  // -------------------------------------------------------------
+  // Group M: Stage 3 — Phase 2 TODAY Continuous Timeline & Principal UX
+  // -------------------------------------------------------------
+
+  // Test M1: Continuous Timeline Generation during Active Period
+  const mon12Timeline = getTodayTimeline(TIMETABLE, mon12Date); // MON 12:00 (P3 active)
+  const hasNowItem = mon12Timeline.timelineItems.some(i => i.type === "now" && i.slot?.id === "P3");
+  const hasCompleteMarker = mon12Timeline.timelineItems.some(i => i.type === "complete");
+  const hasBreakItem = mon12Timeline.timelineItems.some(i => i.isBreak && i.slot?.id === "LUNCH");
+
+  assert(
+    "TODAY Continuous Timeline: Consolidates NOW, BREAK, LATER periods, and DAY COMPLETE into one sequential feed",
+    mon12Timeline.status === "in-period" && hasNowItem && hasBreakItem && hasCompleteMarker,
+    `status: ${mon12Timeline.status}, hasNow: ${hasNowItem}, hasBreak: ${hasBreakItem}, hasComplete: ${hasCompleteMarker}`
+  );
+
+  // Test M2: Multi-slot Lab Consolidation in Timeline
+  const p3Block = mon12Timeline.timelineItems.find(i => i.slot?.id === "P3");
+  const cs3LabInP3 = p3Block?.classes.find(c => c.classId === "CS-III");
+  const firstLabEntry = cs3LabInP3?.entries[0];
+  const isConsolidatedSpan = firstLabEntry?.spanTimeStr === "11:35–13:25" && firstLabEntry?.duration === "1h 50m";
+
+  assert(
+    "TODAY Entry Hierarchy: Multi-slot lab entries consolidate to full time span ('11:35–13:25 • 1h 50m') at start slot",
+    isConsolidatedSpan,
+    `spanTimeStr: ${firstLabEntry?.spanTimeStr}, duration: ${firstLabEntry?.duration}`
+  );
+
+  // Test M3: Break / Lunch Time State Representation
+  const lunchFixtureDate = createDate("MON", 13, 30, 0); // MON 13:30 (Lunch)
+  const lunchTimeline = getTodayTimeline(TIMETABLE, lunchFixtureDate);
+  const activeBreakBlock = lunchTimeline.timelineItems.find(i => i.isBreak && i.type === "now");
+
+  assert(
+    "TODAY Time States: Lunch break (13:25–14:00) represents active BREAK state with countdown without error",
+    lunchTimeline.status === "break" && activeBreakBlock && activeBreakBlock.timeRemaining?.text.includes("left"),
+    `status: ${lunchTimeline.status}, countdown: ${activeBreakBlock?.timeRemaining?.text}`
+  );
+
+  // Test M4: Before College Time State Representation
+  const beforeFixtureDate = createDate("MON", 8, 30, 0); // MON 08:30 (Before college)
+  const beforeTimeline = getTodayTimeline(TIMETABLE, beforeFixtureDate);
+  const startsAtP1 = beforeTimeline.timelineItems[0]?.slot?.id === "P1";
+
+  assert(
+    "TODAY Time States: Before college (08:30) informs that college has not started and shows today's full timeline starting with P1",
+    beforeTimeline.status === "before" && beforeTimeline.statusSummary.includes("09:45") && startsAtP1,
+    `status: ${beforeTimeline.status}, summary: ${beforeTimeline.statusSummary}, firstSlot: ${beforeTimeline.timelineItems[0]?.slot?.id}`
+  );
+
+  // Test M5: After College Time State & Next Working Day Rollover
+  const afterFixtureDate = createDate("MON", 17, 0, 0); // MON 17:00 (After last period)
+  const afterTimeline = getTodayTimeline(TIMETABLE, afterFixtureDate);
+
+  assert(
+    "TODAY Time States: After college (17:00) marks schedule complete and identifies next working day (Tuesday at 09:45)",
+    afterTimeline.status === "after" && afterTimeline.nextFullDayName === "Tuesday" && afterTimeline.statusSummary.includes("Tuesday"),
+    `status: ${afterTimeline.status}, nextDay: ${afterTimeline.nextFullDayName}, summary: ${afterTimeline.statusSummary}`
+  );
+
+  // Test M6: Sunday / Non-working Day State
+  const sunDate = createDate("SUN", 11, 0, 0); // Sunday 11:00
+  const sunTimeline = getTodayTimeline(TIMETABLE, sunDate);
+
+  assert(
+    "TODAY Time States: Sunday displays calm informational closed state and specifies Monday 09:45 resumption",
+    sunTimeline.status === "closed" && sunTimeline.isWorkingDay === false && sunTimeline.nextFullDayName === "Monday",
+    `status: ${sunTimeline.status}, isWorkingDay: ${sunTimeline.isWorkingDay}, nextDay: ${sunTimeline.nextFullDayName}`
+  );
+
+  // Test M7: Composable Filtering on Continuous Timeline (Branch & Faculty)
+  const csFilteredTimeline = filterTodayTimeline(mon12Timeline, { branch: "CS", lecturer: "ALL" });
+  const p3CsClasses = csFilteredTimeline.timelineItems.find(i => i.slot?.id === "P3")?.classes || [];
+  const onlyCsClasses = p3CsClasses.length > 0 && p3CsClasses.every(c => c.branch === "CS");
+
+  const rblFilteredTimeline = filterTodayTimeline(mon12Timeline, { branch: "ALL", lecturer: "RBL" });
+  const p3RblClasses = rblFilteredTimeline.timelineItems.find(i => i.slot?.id === "P3")?.classes || [];
+  const onlyRblTaught = p3RblClasses.length === 1 && p3RblClasses[0].entries.every(e => e.entry.lecturers.includes("RBL"));
+
+  assert(
+    "TODAY Filters: filterTodayTimeline correctly filters continuous feed by Branch ('CS') and Faculty ('RBL')",
+    onlyCsClasses && onlyRblTaught,
+    `onlyCsClasses: ${onlyCsClasses}, onlyRblTaught: ${onlyRblTaught}`
+  );
+
+  // Test M8: Discreet Developer Simulation Panel
+  const hasDevToggleBtn = indexHtml.includes("toggle-sim-btn");
+  const simPanelCollapsed = indexHtml.includes("sim-panel-collapsible collapsed");
+  const hasSimActiveBadge = indexHtml.includes("sim-active-badge");
+
+  assert(
+    "Developer Tools: Simulation panel is discreetly collapsible (.collapsed) with dedicated header toggle to prevent UI clutter",
+    hasDevToggleBtn && simPanelCollapsed && hasSimActiveBadge,
+    `toggleBtn: ${hasDevToggleBtn}, collapsed: ${simPanelCollapsed}, activeBadge: ${hasSimActiveBadge}`
+  );
+
+  // -------------------------------------------------------------
+  // Group N: Stage 3 — Phase 3 WEEK View & Mobile-First Day Navigation
+  // -------------------------------------------------------------
+
+  // Test N1: Mobile-First Day Feed Generation (getDayFeed)
+  const monFeed = getDayFeed(TIMETABLE, "MON");
+  const p3FeedSlot = monFeed.slots.find(s => s.slot.id === "P3");
+  const cs3LabInFeed = p3FeedSlot?.entries.find(e => e.classId === "CS-III");
+
+  assert(
+    "WEEK Mobile Feed: getDayFeed consolidates multi-slot lab with full span ('11:35–13:25 • 1h 50m') on Monday",
+    monFeed.totalEntries > 0 && cs3LabInFeed?.spanTimeStr === "11:35–13:25" && cs3LabInFeed?.duration === "1h 50m",
+    `totalEntries: ${monFeed.totalEntries}, span: ${cs3LabInFeed?.spanTimeStr}, dur: ${cs3LabInFeed?.duration}`
+  );
+
+  // Test N2: Day Feed Branch Filtering
+  const ceOnlyFeed = getDayFeed(TIMETABLE, "MON", { branch: "CE", lecturer: "ALL" });
+  const allEntriesAreCe = ceOnlyFeed.slots.every(s => s.entries.every(e => e.branch === "CE"));
+
+  assert(
+    "WEEK Filters: getDayFeed filters day feed strictly by Branch ('CE')",
+    ceOnlyFeed.totalEntries > 0 && allEntriesAreCe,
+    `total: ${ceOnlyFeed.totalEntries}, allCe: ${allEntriesAreCe}`
+  );
+
+  // Test N3: Day Feed Lecturer Filtering
+  const vmOnlyFeed = getDayFeed(TIMETABLE, "MON", { branch: "ALL", lecturer: "VM" });
+  const allEntriesHaveVm = vmOnlyFeed.slots.every(s => s.entries.every(e => e.entry.lecturers.includes("VM")));
+
+  assert(
+    "WEEK Filters: getDayFeed filters day feed strictly by Faculty ('VM')",
+    vmOnlyFeed.totalEntries > 0 && allEntriesHaveVm,
+    `total: ${vmOnlyFeed.totalEntries}, allVm: ${allEntriesHaveVm}`
+  );
+
+  // Test N4: ui-week.js Source Architecture & PWA Offline Integrity
+  const uiWeekContent = await fetch("./ui-week.js").then(r => r.text()).catch(() => "");
+  const hasScopeSwitcher = uiWeekContent.includes("week-scope-btn") && uiWeekContent.includes("data-scope");
+  const hasDayTabs = uiWeekContent.includes("week-day-pill") && uiWeekContent.includes("data-day");
+  const hasLayoutSwitcher = uiWeekContent.includes("week-layout-switcher") && uiWeekContent.includes("layout-toggle-btn");
+  const hasLiveNowShortcut = uiWeekContent.includes("btn-now-shortcut");
+
+  assert(
+    "WEEK Navigation: ui-week.js includes scope switcher, Monday–Saturday day tabs, layout switcher (feed/grid), and Live Now shortcut",
+    hasScopeSwitcher && hasDayTabs && hasLayoutSwitcher && hasLiveNowShortcut,
+    `scope: ${hasScopeSwitcher}, tabs: ${hasDayTabs}, layout: ${hasLayoutSwitcher}, liveNow: ${hasLiveNowShortcut}`
+  );
+
+  // Test N5: Sw.js Precache encompasses ui-week.js
+  const swContentV5 = await fetch("./sw.js").then(r => r.text()).catch(() => "");
+  const swCachesUiWeek = swContentV5.includes('"./ui-week.js"');
+
+  assert(
+    "WEEK PWA Offline: sw.js includes ./ui-week.js in its precache asset registry",
+    swCachesUiWeek,
+    `ui-week.js in sw.js: ${swCachesUiWeek}`
+  );
+
+  // -------------------------------------------------------------
+  // Group O: Stage 3 — Phase 4 EXPLORE Search & Multi-Dimensional Filtering
+  // -------------------------------------------------------------
+
+  // Test O1: Free-Text Search Matching Subject & Faculty
+  const searchResults1 = searchAndFilterEntries(TIMETABLE, { query: "DSP" });
+  const allMatchDsp = searchResults1.results.length > 0 && searchResults1.results.every(r => r.entry.subject.includes("DSP"));
+
+  const searchResults2 = searchAndFilterEntries(TIMETABLE, { query: "Mohan" });
+  const allMatchMohan = searchResults2.results.length > 0 && searchResults2.results.every(r => r.entry.lecturers.includes("VM"));
+
+  assert(
+    "EXPLORE Search: Text search matches subject name ('DSP') and faculty name ('Mohan')",
+    allMatchDsp && allMatchMohan,
+    `dspMatches: ${searchResults1.totalMatches}, mohanMatches: ${searchResults2.totalMatches}`
+  );
+
+  // Test O2: Composable Multi-Dimensional Filtering (Branch + Sem + Day + Activity Type)
+  const cs3MonLab = searchAndFilterEntries(TIMETABLE, {
+    branch: "CS",
+    sem: "III",
+    day: "MON",
+    activityType: "lab"
+  });
+  const allCs3MonLabs = cs3MonLab.results.length === 3 &&
+    cs3MonLab.results.every(r => r.branch === "CS" && r.sem === "III" && r.day === "MON" && r.entry.type === "lab");
+
+  assert(
+    "EXPLORE Composable Filters: Combines Branch ('CS') AND Sem ('III') AND Day ('MON') AND Activity ('lab')",
+    allCs3MonLabs,
+    `matches: ${cs3MonLab.totalMatches}, expected: 3 parallel batches`
+  );
+
+  // Test O3: Semester-Wide Filtering across all branches
+  const sem3Results = searchAndFilterEntries(TIMETABLE, { sem: "III" });
+  const allSem3 = sem3Results.results.length > 0 && sem3Results.results.every(r => r.sem === "III");
+
+  assert(
+    "EXPLORE Filters: Semester filter ('III') filters classes across all branches strictly to 3rd semester",
+    allSem3,
+    `sem3Total: ${sem3Results.totalMatches}`
+  );
+
+  // Test O4: Activity Type Filtering
+  const labOnlyResults = searchAndFilterEntries(TIMETABLE, { activityType: "lab" });
+  const allAreLabs = labOnlyResults.results.length > 0 && labOnlyResults.results.every(r => r.entry.type === "lab");
+
+  assert(
+    "EXPLORE Filters: Activity Type filter ('lab') isolates practical lab sessions cleanly",
+    allAreLabs,
+    `labTotal: ${labOnlyResults.totalMatches}`
+  );
+
+  // Test O5: Zero-Match Disjoint Scenario
+  const zeroMatches = searchAndFilterEntries(TIMETABLE, {
+    branch: "ME",
+    lecturer: "RBL"
+  });
+
+  assert(
+    "EXPLORE Filters: Disjoint combinations return totalMatches: 0 triggering calm empty state",
+    zeroMatches.totalMatches === 0 && zeroMatches.results.length === 0,
+    `zeroMatches: ${zeroMatches.totalMatches}`
+  );
+
+  // Test O6: ui-explore.js UI Architecture & Clear-All Support
+  const uiExploreContent = await fetch("./ui-explore.js").then(r => r.text()).catch(() => "");
+  const hasExploreInput = uiExploreContent.includes("explore-search-input") && uiExploreContent.includes("explore-search-clear");
+  const hasFilterChips = uiExploreContent.includes("explore-chip-btn") && uiExploreContent.includes("data-filter");
+  const hasClearAll = uiExploreContent.includes("btn-clear-all-filters");
+  const hasEmptyReset = uiExploreContent.includes("btn-empty-reset");
+
+  assert(
+    "EXPLORE UI: ui-explore.js implements search with 1-tap clear, multi-dimensional chips, clear-all, and empty state reset",
+    hasExploreInput && hasFilterChips && hasClearAll && hasEmptyReset,
+    `input: ${hasExploreInput}, chips: ${hasFilterChips}, clearAll: ${hasClearAll}, emptyReset: ${hasEmptyReset}`
+  );
+
+  // Test O7: Sw.js Precache encompasses ui-explore.js
+  const swContentV6 = await fetch("./sw.js").then(r => r.text()).catch(() => "");
+  const swCachesUiExplore = swContentV6.includes('"./ui-explore.js"');
+
+  assert(
+    "EXPLORE PWA Offline: sw.js includes ./ui-explore.js in its precache asset registry",
+    swCachesUiExplore,
+    `ui-explore.js in sw.js: ${swCachesUiExplore}`
+  );
+
+  // -------------------------------------------------------------
+  // Group P: Stage 3 — Phase 5 Real Data Preparation & Handoff
+  // -------------------------------------------------------------
+
+  // Test P1: Production Template Schema Integrity
+  const templateModule = await import("./data.template.js").catch(() => null);
+  const templateData = templateModule?.TIMETABLE;
+  const templateErrors = templateData ? validateTimetable(templateData).filter(e => e.level === "error") : ["failed import"];
+
+  assert(
+    "Real Data Prep: data.template.js is 100% valid with 0 schema errors and has meta.isSample === false",
+    templateData && templateErrors.length === 0 && templateData.meta?.isSample === false,
+    `errors: ${templateErrors.length}, isSample: ${templateData?.meta?.isSample}`
+  );
+
+  // Test P2: Sample Data Invariant (Do not remove sample data yet)
+  const isSamplePreserved = TIMETABLE.meta.isSample === true;
+
+  assert(
+    "Real Data Prep: TIMETABLE in data.js preserves isSample: true until actual college schedule is deployed",
+    isSamplePreserved,
+    `isSample: ${TIMETABLE.meta.isSample}`
+  );
+
+  // Test P3: Data Handoff Guide Documentation
+  const handoffDoc = await fetch("./DATA_HANDOFF.md").then(r => r.text()).catch(() => "");
+  const hasStepByStep = handoffDoc.includes("data.template.js") && handoffDoc.includes("npm run validate-data");
+  const hasSchemaRules = handoffDoc.includes("slots") && handoffDoc.includes("classes") && handoffDoc.includes("lecturers");
+
+  assert(
+    "Real Data Prep: DATA_HANDOFF.md provides step-by-step instructions, schema rules, and error resolution guides",
+    hasStepByStep && hasSchemaRules,
+    `hasStepByStep: ${hasStepByStep}, hasSchemaRules: ${hasSchemaRules}`
+  );
+
+  // Test P4: Package.json Validation Command
+  const packageJson = await fetch("./package.json").then(r => r.json()).catch(() => ({}));
+  const hasValidateScript = !!packageJson?.scripts?.["validate-data"];
+
+  assert(
+    "Real Data Prep: package.json provides 'validate-data' script executing validate-cli.js",
+    hasValidateScript,
+    `validate-data script defined: ${hasValidateScript}`
+  );
+
+  // Test P5: CLI Validator File Integrity
+  const cliContent = await fetch("./validate-cli.js").then(r => r.text()).catch(() => "");
+  const hasCliLogic = cliContent.includes("validateTimetable") && cliContent.includes("process.exit(0)") && cliContent.includes("process.exit(1)");
+
+  assert(
+    "Real Data Prep: validate-cli.js imports validateTimetable and handles CLI exit codes correctly",
+    hasCliLogic,
+    `hasCliLogic: ${hasCliLogic}`
+  );
+
+  // -------------------------------------------------------------
+  // Group Q: Stage 3 — Phase 6 Final Polish, Accessibility & Audit
+  // -------------------------------------------------------------
+
+  // Test Q1: Print Stylesheet Audit (Clean suppression of interactive toolbars)
+  const stylesCssContent = await fetch("./styles.css").then(r => r.text()).catch(() => "");
+  const printHidesToolbars = stylesCssContent.includes("@media print") &&
+    stylesCssContent.includes(".week-toolbar") &&
+    stylesCssContent.includes(".explore-search-bar") &&
+    stylesCssContent.includes(".sim-active-indicator");
+
+  assert(
+    "Audit — Print Rendering: @media print suppresses interactive toolbars, dev panels, and navigation chrome",
+    printHidesToolbars,
+    `printHidesToolbars: ${printHidesToolbars}`
+  );
+
+  // Test Q2: Semantic HTML & Accessibility Roles
+  const indexHtmlFull = await fetch("./index.html").then(r => r.text()).catch(() => "");
+  const hasAriaTabs = indexHtmlFull.includes('role="tablist"') &&
+    indexHtmlFull.includes('role="tab"') &&
+    indexHtmlFull.includes('aria-selected="true"') &&
+    indexHtmlFull.includes('aria-controls="main-content"');
+
+  assert(
+    "Audit — Accessibility: App shell enforces semantic tablist, role='tab', aria-selected, and aria-controls",
+    hasAriaTabs,
+    `hasAriaTabs: ${hasAriaTabs}`
+  );
+
+  // Test Q3: PWA Cache Completeness (All view components precached)
+  const swFull = await fetch("./sw.js").then(r => r.text()).catch(() => "");
+  const allViewsPrecached = swFull.includes('"./ui-today.js"') &&
+    swFull.includes('"./ui-week.js"') &&
+    swFull.includes('"./ui-explore.js"') &&
+    swFull.includes('"./manifest.webmanifest"');
+
+  assert(
+    "Audit — Performance & Offline: sw.js precaches all Stage 3 view engines (ui-today, ui-week, ui-explore)",
+    allViewsPrecached,
+    `allViewsPrecached: ${allViewsPrecached}`
+  );
+
+  // Test Q4: Documentation Completeness
+  const readmeFull = await fetch("./README.md").then(r => r.text()).catch(() => "");
+  const docsComplete = readmeFull.includes("TODAY") &&
+    readmeFull.includes("WEEK") &&
+    readmeFull.includes("EXPLORE") &&
+    readmeFull.includes("DATA_HANDOFF.md");
+
+  assert(
+    "Audit — Documentation: README.md outlines all 3 core executive views and links DATA_HANDOFF.md",
+    docsComplete,
+    `docsComplete: ${docsComplete}`
+  );
+
+  // Test Q5: Sample vs Real Data Invariant Boundary
+  const templateMod = await import("./data.template.js").catch(() => null);
+  const sampleBoundaryValid = TIMETABLE.meta.isSample === true && templateMod?.TIMETABLE?.meta?.isSample === false;
+
+  assert(
+    "Audit — Data Boundary: data.js retains isSample: true while data.template.js is prepared with isSample: false",
+    sampleBoundaryValid,
+    `sampleBoundaryValid: ${sampleBoundaryValid}`
   );
 
   return results;

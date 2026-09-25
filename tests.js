@@ -974,7 +974,7 @@ export async function runAllTests() {
 
   // Test I6: GitHub Pages Portability - Strict relative URLs in index.html
   const hasRelativeManifest = indexHtml.includes('href="./manifest.webmanifest"');
-  const hasRelativeCss = indexHtml.includes('href="./styles.css"');
+  const hasRelativeCss = indexHtml.includes('href="./styles.css"') || indexHtml.includes('href="./styles.css?v=');
   const hasRelativeAppJs = indexHtml.includes('src="./app.js"');
   const noAbsoluteRootLinks = !indexHtml.includes('href="/styles.css"') && !indexHtml.includes('src="/app.js"');
 

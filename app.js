@@ -634,9 +634,13 @@ function setupPWA() {
     navigator.serviceWorker
       .register("./sw.js", { scope: "./" })
       .then((registration) => {
-        // If an updated worker is already waiting to activate
+        // Force periodic background update check
+        registration.update();
+
+        // If an updated worker is already waiting to activate, trigger immediate activation
         if (registration.waiting) {
           newWorker = registration.waiting;
+          newWorker.postMessage({ type: "SKIP_WAITING" });
           if (updateBanner) updateBanner.style.display = "flex";
         }
 
@@ -645,7 +649,8 @@ function setupPWA() {
           if (newWorker) {
             newWorker.addEventListener("statechange", () => {
               if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                // New update available and ready to activate
+                // New update available, activate immediately and alert user
+                newWorker.postMessage({ type: "SKIP_WAITING" });
                 if (updateBanner) updateBanner.style.display = "flex";
               }
             });
@@ -668,6 +673,8 @@ function setupPWA() {
       updateReloadBtn.addEventListener("click", () => {
         if (newWorker) {
           newWorker.postMessage({ type: "SKIP_WAITING" });
+        } else {
+          window.location.reload();
         }
       });
     }

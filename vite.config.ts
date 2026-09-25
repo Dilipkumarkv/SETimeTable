@@ -26,10 +26,27 @@ export default defineConfig(() => {
                   const cssPath = path.resolve(process.cwd(), 'styles.css');
                   const cssContent = fs.readFileSync(cssPath, 'utf-8');
                   res.setHeader('Content-Type', 'text/css; charset=utf-8');
+                  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                  res.setHeader('Pragma', 'no-cache');
+                  res.setHeader('Expires', '0');
                   res.end(cssContent);
                   return;
                 } catch (e) {}
               }
+            }
+
+            // Serve sw.js with strict no-cache headers to ensure immediate worker updates
+            if (parsedUrl.pathname === '/sw.js' || parsedUrl.pathname === '/./sw.js') {
+              try {
+                const swPath = path.resolve(process.cwd(), 'sw.js');
+                const swContent = fs.readFileSync(swPath, 'utf-8');
+                res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+                res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                res.setHeader('Pragma', 'no-cache');
+                res.setHeader('Expires', '0');
+                res.end(swContent);
+                return;
+              } catch (e) {}
             }
 
             // Serve raw index.html when fetched by tests.js (sec-fetch-dest: empty or accept: */*)
@@ -41,6 +58,9 @@ export default defineConfig(() => {
                   const htmlPath = path.resolve(process.cwd(), 'index.html');
                   const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
                   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                  res.setHeader('Pragma', 'no-cache');
+                  res.setHeader('Expires', '0');
                   res.end(htmlContent);
                   return;
                 } catch (e) {}

@@ -8,7 +8,7 @@
     
     <!-- PWA Web App Manifest & Metadata -->
     <link rel="manifest" href="./manifest.webmanifest" />
-    <meta name="theme-color" content="#1d4ed8" />
+    <meta name="theme-color" content="#f6f1eb" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -23,7 +23,32 @@
     <meta name="twitter:card" content="summary_large_image" />
 
     <!-- Application Stylesheet (Zero external requests) -->
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=1.0.0" />
+
+    <!-- Immediate Cache-Buster & Service Worker Auto-Updater -->
+    <script>
+      (function() {
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            names.forEach(function(name) {
+              if (name !== 'timetable-cache-v10') {
+                caches.delete(name);
+              }
+            });
+          });
+        }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(reg) {
+              reg.update();
+              if (reg.waiting) {
+                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          });
+        }
+      })();
+    </script>
   </head>
   <body>
     <!-- Offline Status Indicator Banner -->

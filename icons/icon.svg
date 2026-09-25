@@ -1,33 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
-  <!-- Modern flat background with subtle geometric radius -->
-  <rect width="512" height="512" rx="112" fill="#1e3a8a"/>
+  <!-- Warm espresso background with smooth continuous squircle -->
+  <rect width="512" height="512" rx="116" fill="#2a1b12"/>
   
-  <!-- Sleek geometric grid columns (Timetable motif) -->
-  <rect x="76" y="86" width="360" height="340" rx="24" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-width="8" stroke-opacity="0.2"/>
+  <!-- Subtle warm ambient glow behind card -->
+  <circle cx="256" cy="256" r="210" fill="#a7673b" fill-opacity="0.18"/>
   
-  <!-- Accent header banner -->
-  <path d="M76 110C76 96.7452 86.7452 86 100 86H412C425.255 86 436 96.7452 436 110V156H76V110Z" fill="#3b82f6"/>
+  <!-- Sleek geometric grid card (Warm parchment container) -->
+  <rect x="76" y="86" width="360" height="340" rx="28" fill="#f6f1eb" stroke="#ebdcd0" stroke-width="6"/>
   
-  <!-- Minimalist timetable column dividers -->
-  <line x1="166" y1="156" x2="166" y2="426" stroke="#ffffff" stroke-opacity="0.15" stroke-width="4"/>
-  <line x1="256" y1="156" x2="256" y2="426" stroke="#ffffff" stroke-opacity="0.15" stroke-width="4"/>
-  <line x1="346" y1="156" x2="346" y2="426" stroke="#ffffff" stroke-opacity="0.15" stroke-width="4"/>
+  <!-- Warm terracotta header banner -->
+  <path d="M76 114C76 98.536 88.536 86 104 86H408C423.464 86 436 98.536 436 114V156H76V114Z" fill="#a7673b"/>
+  
+  <!-- Minimalist timetable column dividers in soft warm sand -->
+  <line x1="166" y1="156" x2="166" y2="426" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
+  <line x1="256" y1="156" x2="256" y2="426" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
+  <line x1="346" y1="156" x2="346" y2="426" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
   
   <!-- Horizontal period dividers -->
-  <line x1="76" y1="246" x2="436" y2="246" stroke="#ffffff" stroke-opacity="0.15" stroke-width="4"/>
-  <line x1="76" y1="336" x2="436" y2="336" stroke="#ffffff" stroke-opacity="0.15" stroke-width="4"/>
+  <line x1="76" y1="246" x2="436" y2="246" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
+  <line x1="76" y1="336" x2="436" y2="336" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
   
-  <!-- Active live slot highlight (Gold/Amber accent) -->
-  <rect x="176" y="166" width="70" height="70" rx="10" fill="#f59e0b" fill-opacity="0.9"/>
+  <!-- Active live slot highlight (Terracotta accent tile) -->
+  <rect x="176" y="166" width="70" height="70" rx="14" fill="#a7673b" fill-opacity="0.85"/>
+  <rect x="188" y="178" width="46" height="46" rx="8" fill="#ffffff" fill-opacity="0.25"/>
   
-  <!-- Central Minimalist Clock Icon Emblem -->
-  <circle cx="346" cy="336" r="64" fill="#1e3a8a" stroke="#ffffff" stroke-width="8"/>
-  <circle cx="346" cy="336" r="54" fill="#2563eb"/>
+  <!-- Central Minimalist Clock Icon Emblem in Warm Sand -->
+  <circle cx="346" cy="336" r="64" fill="#2a1b12" stroke="#ebdcd0" stroke-width="8"/>
+  <circle cx="346" cy="336" r="54" fill="#a7673b"/>
   <!-- Clock hands at 09:45 -->
   <line x1="346" y1="336" x2="316" y2="336" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
   <line x1="346" y1="336" x2="346" y2="306" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
   <circle cx="346" cy="336" r="5" fill="#ffffff"/>
   
   <!-- Clean Wordmark Text -->
-  <text x="256" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="4">SET POLYTECHNIC</text>
+  <text x="256" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="4">SET POLYTECHNIC</text>
 </svg>
