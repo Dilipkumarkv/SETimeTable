@@ -1,6 +1,6 @@
 // Phase 6: Service Worker for Offline Timetable PWA
 // Versioned cache name: Bumping this version updates assets for all installed users
-const CACHE_NAME = "timetable-cache-v23";
+const CACHE_NAME = "timetable-cache-v24";
 
 // Explicit precache list of all application files using strictly relative paths
 const PRECACHE_ASSETS = [

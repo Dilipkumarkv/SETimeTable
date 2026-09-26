@@ -79,6 +79,7 @@ export function renderExploreView(container, data, exploreState, onStateChange) 
             placeholder="Search subject, faculty, class, or day..."
             value="${escapeHtml(query)}"
             aria-label="Search timetable"
+            autocomplete="off"
           />
           ${query ? `
             <button type="button" id="explore-search-clear" class="search-clear-btn" aria-label="Clear search">×</button>
@@ -86,157 +87,18 @@ export function renderExploreView(container, data, exploreState, onStateChange) 
         </div>
       </div>
 
-      <!-- Composable Multi-Dimensional Filters Bar -->
-      <div class="explore-filters-box">
-        
-        <!-- Filter Row 1: Branch Chips -->
-        <div class="explore-filter-row">
-          <span class="explore-filter-label">Branch:</span>
-          <div class="explore-chips-group" role="group" aria-label="Branch filter">
-            ${["ALL", "CE", "CS", "EC", "EE", "ME"].map(b => `
-              <button
-                type="button"
-                class="explore-chip-btn ${branch === b ? 'active' : ''}"
-                data-filter="branch"
-                data-value="${b}"
-                aria-pressed="${branch === b}"
-              >${b}</button>
-            `).join("")}
-          </div>
-        </div>
-
-        <!-- Filter Row 2: Semester & Day Chips -->
-        <div class="explore-filter-row">
-          <span class="explore-filter-label">Sem:</span>
-          <div class="explore-chips-group" role="group" aria-label="Semester filter">
-            ${["ALL", "I", "III", "V"].map(s => `
-              <button
-                type="button"
-                class="explore-chip-btn ${sem === s ? 'active' : ''}"
-                data-filter="sem"
-                data-value="${s}"
-                aria-pressed="${sem === s}"
-              >${s === 'ALL' ? 'All' : `Sem ${s}`}</button>
-            `).join("")}
-          </div>
-        </div>
-
-        <!-- Filter Row 3: Day Chips -->
-        <div class="explore-filter-row">
-          <span class="explore-filter-label">Day:</span>
-          <div class="explore-chips-group" role="group" aria-label="Day filter">
-            ${["ALL", ...data.days].map(d => `
-              <button
-                type="button"
-                class="explore-chip-btn ${day === d ? 'active' : ''}"
-                data-filter="day"
-                data-value="${d}"
-                aria-pressed="${day === d}"
-              >${d}</button>
-            `).join("")}
-          </div>
-        </div>
-
-        <!-- Filter Row 4: Activity Type Chips -->
-        <div class="explore-filter-row">
-          <span class="explore-filter-label">Type:</span>
-          <div class="explore-chips-group" role="group" aria-label="Activity type filter">
-            ${[
-              { val: "ALL", label: "All" },
-              { val: "theory", label: "Theory" },
-              { val: "lab", label: "Lab" }
-            ].map(t => `
-              <button
-                type="button"
-                class="explore-chip-btn ${activityType === t.val ? 'active' : ''}"
-                data-filter="activityType"
-                data-value="${t.val}"
-                aria-pressed="${activityType === t.val}"
-              >${t.label}</button>
-            `).join("")}
-          </div>
-        </div>
-
-        <!-- Filter Row 5: Faculty & Class Select Dropdowns -->
-        <div class="explore-selects-row">
-          <div class="explore-select-group">
-            <label for="explore-lecturer-select">Faculty:</label>
-            <select id="explore-lecturer-select" class="explore-select" aria-label="Filter by faculty">
-              <option value="ALL" ${lecturer === 'ALL' ? 'selected' : ''}>All Faculty Members</option>
-              ${Object.keys(data.lecturers).map(init => {
-                const l = data.lecturers[init];
-                const name = l && l.name && l.name !== init ? `${l.name} (${init})` : init;
-                return `<option value="${init}" ${lecturer === init ? 'selected' : ''}>${name}</option>`;
-              }).join("")}
-            </select>
-          </div>
-
-          <div class="explore-select-group">
-            <label for="explore-class-select">Class:</label>
-            <select id="explore-class-select" class="explore-select" aria-label="Filter by class">
-              <option value="ALL" ${classId === 'ALL' ? 'selected' : ''}>All Classes</option>
-              ${data.classes.map(c => `
-                <option value="${c.id}" ${classId === c.id ? 'selected' : ''}>${c.id} (${c.branch} Sem ${c.sem})</option>
-              `).join("")}
-            </select>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Active Filter Chips & Result Counter -->
+      <!-- Result Counter & Clear Action -->
       <div class="explore-status-bar">
         <span class="explore-count-badge" role="status">
           ${totalMatches === 1 ? '1 session found' : `${totalMatches} sessions found`}
         </span>
 
         ${isFiltered ? `
-          <button type="button" id="explore-clear-all-btn" class="btn-clear-all-filters" title="Reset all filters">
-            Clear All Filters
+          <button type="button" id="explore-clear-all-btn" class="btn-clear-all-filters" title="Clear search">
+            Clear Search
           </button>
         ` : ""}
       </div>
-
-      <!-- Active Filter Dismissal Chips -->
-      ${isFiltered ? `
-        <div class="explore-active-chips-tray" aria-label="Active filters">
-          ${query ? `
-            <button type="button" class="filter-dismiss-chip" data-clear="query">
-              Query: "${query}" <span class="filter-dismiss-x">×</span>
-            </button>
-          ` : ""}
-          ${branch !== "ALL" ? `
-            <button type="button" class="filter-dismiss-chip" data-clear="branch">
-              Branch: ${branch} <span class="filter-dismiss-x">×</span>
-            </button>
-          ` : ""}
-          ${sem !== "ALL" ? `
-            <button type="button" class="filter-dismiss-chip" data-clear="sem">
-              Sem: ${sem} <span class="filter-dismiss-x">×</span>
-            </button>
-          ` : ""}
-          ${day !== "ALL" ? `
-            <button type="button" class="filter-dismiss-chip" data-clear="day">
-              Day: ${day} <span class="filter-dismiss-x">×</span>
-            </button>
-          ` : ""}
-          ${activityType !== "ALL" ? `
-            <button type="button" class="filter-dismiss-chip" data-clear="activityType">
-              Type: ${activityType.toUpperCase()} <span class="filter-dismiss-x">×</span>
-            </button>
-          ` : ""}
-          ${lecturer !== "ALL" ? `
-            <button type="button" class="filter-dismiss-chip" data-clear="lecturer">
-              Faculty: ${data.lecturers[lecturer]?.name || lecturer} <span class="filter-dismiss-x">×</span>
-            </button>
-          ` : ""}
-          ${classId !== "ALL" ? `
-            <button type="button" class="filter-dismiss-chip" data-clear="classId">
-              Class: ${classId} <span class="filter-dismiss-x">×</span>
-            </button>
-          ` : ""}
-        </div>
-      ` : ""}
 
       <!-- Results Feed -->
       <div class="explore-results-feed" role="feed" aria-label="Search results">
@@ -246,9 +108,9 @@ export function renderExploreView(container, data, exploreState, onStateChange) 
     html += `
       <div class="feed-empty-state">
         <span class="empty-icon">🔍</span>
-        <h4>No classes match the selected filters</h4>
-        <p>Try searching with different keywords or clearing some filters to expand your results.</p>
-        <button type="button" id="btn-empty-reset" class="btn-secondary" style="margin-top: 12px;">Reset All Filters</button>
+        <h4>No classes match "${escapeHtml(query)}"</h4>
+        <p>Try searching with a subject code, faculty name, semester, branch, or day.</p>
+        <button type="button" id="btn-empty-reset" class="btn-secondary" style="margin-top: 12px;">Clear Search</button>
       </div>
     `;
   } else {
@@ -318,7 +180,7 @@ function escapeHtml(str) {
  * Event handlers for Explore screen
  */
 function attachExploreEventListeners(container, exploreState, onStateChange) {
-  // Search input with debounce or direct input
+  // Search input with instant reactive input
   const searchInput = container.querySelector("#explore-search-input");
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
@@ -330,52 +192,19 @@ function attachExploreEventListeners(container, exploreState, onStateChange) {
   const clearSearchBtn = container.querySelector("#explore-search-clear");
   if (clearSearchBtn) {
     clearSearchBtn.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(12);
       onStateChange({ ...exploreState, query: "" });
     });
   }
 
-  // Filter chips (Branch, Sem, Day, Activity Type)
-  const chipBtns = container.querySelectorAll(".explore-chip-btn");
-  chipBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      window.TimetableApp?.triggerHaptic?.(14);
-      const filterKey = btn.getAttribute("data-filter");
-      const filterVal = btn.getAttribute("data-value");
-      onStateChange({ ...exploreState, [filterKey]: filterVal });
-    });
-  });
-
-  // Lecturer select
-  const lecSelect = container.querySelector("#explore-lecturer-select");
-  if (lecSelect) {
-    lecSelect.addEventListener("change", (e) => {
-      window.TimetableApp?.triggerHaptic?.(14);
-      onStateChange({ ...exploreState, lecturer: e.target.value });
-    });
-  }
-
-  // Class select
-  const classSelect = container.querySelector("#explore-class-select");
-  if (classSelect) {
-    classSelect.addEventListener("change", (e) => {
-      window.TimetableApp?.triggerHaptic?.(14);
-      onStateChange({ ...exploreState, classId: e.target.value });
-    });
-  }
-
-  // Clear All button
+  // Clear search action button
   const clearAllBtn = container.querySelector("#explore-clear-all-btn");
   if (clearAllBtn) {
     clearAllBtn.addEventListener("click", () => {
-      window.TimetableApp?.triggerHaptic?.(22);
+      window.TimetableApp?.triggerHaptic?.(16);
       onStateChange({
-        query: "",
-        branch: "ALL",
-        sem: "ALL",
-        day: "ALL",
-        activityType: "ALL",
-        lecturer: "ALL",
-        classId: "ALL"
+        ...exploreState,
+        query: ""
       });
     });
   }
@@ -384,27 +213,11 @@ function attachExploreEventListeners(container, exploreState, onStateChange) {
   const emptyResetBtn = container.querySelector("#btn-empty-reset");
   if (emptyResetBtn) {
     emptyResetBtn.addEventListener("click", () => {
-      window.TimetableApp?.triggerHaptic?.(22);
+      window.TimetableApp?.triggerHaptic?.(16);
       onStateChange({
-        query: "",
-        branch: "ALL",
-        sem: "ALL",
-        day: "ALL",
-        activityType: "ALL",
-        lecturer: "ALL",
-        classId: "ALL"
+        ...exploreState,
+        query: ""
       });
     });
   }
-
-  // Individual dismiss chips
-  const dismissChips = container.querySelectorAll(".filter-dismiss-chip");
-  dismissChips.forEach(chip => {
-    chip.addEventListener("click", () => {
-      window.TimetableApp?.triggerHaptic?.(18);
-      const clearKey = chip.getAttribute("data-clear");
-      const defaultVal = clearKey === "query" ? "" : "ALL";
-      onStateChange({ ...exploreState, [clearKey]: defaultVal });
-    });
-  });
 }

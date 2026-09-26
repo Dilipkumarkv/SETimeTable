@@ -1409,17 +1409,16 @@ export async function runAllTests() {
     `zeroMatches: ${zeroMatches.totalMatches}`
   );
 
-  // Test O6: ui-explore.js UI Architecture & Clear-All Support
+  // Test O6: ui-explore.js UI Architecture & Search Support
   const uiExploreContent = await fetch("./ui-explore.js").then(r => r.text()).catch(() => "");
   const hasExploreInput = uiExploreContent.includes("explore-search-input") && uiExploreContent.includes("explore-search-clear");
-  const hasFilterChips = uiExploreContent.includes("explore-chip-btn") && uiExploreContent.includes("data-filter");
   const hasClearAll = uiExploreContent.includes("btn-clear-all-filters");
   const hasEmptyReset = uiExploreContent.includes("btn-empty-reset");
 
   assert(
-    "EXPLORE UI: ui-explore.js implements search with 1-tap clear, multi-dimensional chips, clear-all, and empty state reset",
-    hasExploreInput && hasFilterChips && hasClearAll && hasEmptyReset,
-    `input: ${hasExploreInput}, chips: ${hasFilterChips}, clearAll: ${hasClearAll}, emptyReset: ${hasEmptyReset}`
+    "EXPLORE UI: ui-explore.js implements search with 1-tap clear, count status, clear action, and empty state reset",
+    hasExploreInput && hasClearAll && hasEmptyReset,
+    `input: ${hasExploreInput}, clearAll: ${hasClearAll}, emptyReset: ${hasEmptyReset}`
   );
 
   // Test O7: Sw.js Precache encompasses ui-explore.js
