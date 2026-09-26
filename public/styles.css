@@ -385,6 +385,34 @@ select:focus-visible,
   align-items: center;
 }
 
+.btn-install-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
+  background-color: #ffffff;
+  color: var(--accent);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(60, 42, 28, 0.04);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-install-icon:hover {
+  background-color: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(167, 103, 59, 0.25);
+}
+
+.btn-install-icon:active {
+  transform: scale(0.95);
+}
+
 .install-btn {
   display: inline-flex;
   align-items: center;
@@ -1778,7 +1806,7 @@ select:focus-visible,
 }
 
 /* ==========================================================================
-   iOS Safari Modal Guide
+   PWA Installation & Action Modal Dialog (Theme Glassmorphism)
    ========================================================================== */
 .modal-overlay {
   position: fixed;
@@ -1786,28 +1814,186 @@ select:focus-visible,
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.6);
+  background-color: rgba(30, 20, 15, 0.48);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
   z-index: 1000;
+  animation: modal-fade-in 0.22s ease-out;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-card {
-  background-color: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 20px;
-  max-width: 360px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(235, 220, 208, 0.95);
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 440px;
   width: 100%;
+  box-shadow: 0 20px 45px -10px rgba(60, 42, 28, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modal-pop 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes modal-pop {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.modal-app-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(167, 103, 59, 0.2);
+  flex-shrink: 0;
+}
+
+.modal-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .modal-title {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+
+.modal-subtitle {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.modal-perks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #faf6f0;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+}
+
+.modal-perk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.perk-icon {
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.perk-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.perk-info strong {
+  color: var(--text-primary);
+  font-weight: 750;
+}
+
+.install-platform-guide {
+  background: #f4ede2;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+}
+
+.platform-guide-title {
+  font-size: 0.85rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.platform-guide-steps {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.platform-guide-text {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.modal-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.modal-primary-btn {
+  flex: 1;
+  min-height: 44px;
+  background-color: var(--accent);
+  color: #ffffff;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 750;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 3px 10px rgba(167, 103, 59, 0.28);
+  transition: all 0.15s ease;
+}
+
+.modal-primary-btn:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.modal-secondary-btn {
+  min-height: 44px;
+  padding: 0 18px;
+  background-color: #ffffff;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-secondary-btn:hover {
+  background-color: var(--bg-muted);
+  color: var(--text-primary);
 }
 
 .modal-body {

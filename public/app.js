@@ -616,8 +616,11 @@ function setupPWA() {
   const updateReloadBtn = document.getElementById("update-reload-btn");
   const installContainer = document.getElementById("install-container");
   const installAppBtn = document.getElementById("install-app-btn");
-  const iosGuideModal = document.getElementById("ios-guide-modal");
-  const iosModalClose = document.getElementById("ios-modal-close");
+  const pwaModal = document.getElementById("pwa-install-modal") || document.getElementById("ios-guide-modal");
+  const pwaModalClose = document.getElementById("pwa-modal-close") || document.getElementById("ios-modal-close");
+  const modalNativeInstallBtn = document.getElementById("modal-native-install-btn");
+  const installGuideIos = document.getElementById("install-guide-ios");
+  const installGuideDesktop = document.getElementById("install-guide-desktop");
 
   // 1. Online / Offline Status Monitoring
   function updateOnlineStatus() {
@@ -632,62 +635,118 @@ function setupPWA() {
   window.addEventListener("offline", updateOnlineStatus);
   updateOnlineStatus();
 
-  // 2. In-App Install Prompt
+  // 2. In-App Install Prompt & Themed Window Modal
   let deferredPrompt = null;
   const isStandalone =
     window.matchMedia("(display-mode: standalone)").matches ||
     window.navigator.standalone === true;
 
   const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isDesktop = !(/android|iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()));
 
-  if (!isStandalone) {
+  // Hide install button completely if already installed and running in standalone window
+  if (isStandalone) {
+    if (installContainer) installContainer.style.display = "none";
+  }
+
+  function showInstallModal() {
+    if (!pwaModal) return;
     if (isIOS) {
-      // Show install button for iOS that reveals guide modal
-      if (installContainer) installContainer.style.display = "flex";
-      if (installAppBtn) {
-        installAppBtn.addEventListener("click", () => {
-          if (iosGuideModal) iosGuideModal.style.display = "flex";
-        });
-      }
+      if (installGuideIos) installGuideIos.style.display = "block";
+      if (installGuideDesktop) installGuideDesktop.style.display = "none";
+      if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = "none";
+    } else if (isDesktop) {
+      if (installGuideIos) installGuideIos.style.display = "none";
+      if (installGuideDesktop) installGuideDesktop.style.display = "block";
+      if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = deferredPrompt ? "inline-flex" : "none";
+    } else {
+      // Android / Other mobile
+      if (installGuideIos) installGuideIos.style.display = "none";
+      if (installGuideDesktop) installGuideDesktop.style.display = "none";
+      if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = "inline-flex";
     }
+    pwaModal.style.display = "flex";
+  }
 
-    window.addEventListener("beforeinstallprompt", (e) => {
-      // Prevent browser mini-infobar from appearing on mobile
-      e.preventDefault();
-      deferredPrompt = e;
-      if (installContainer) installContainer.style.display = "flex";
-    });
+  function hideInstallModal() {
+    if (pwaModal) pwaModal.style.display = "none";
+  }
 
-    if (installAppBtn && !isIOS) {
-      installAppBtn.addEventListener("click", async () => {
-        if (!deferredPrompt) return;
-        installAppBtn.disabled = true;
+  async function triggerNativePrompt() {
+    if (deferredPrompt) {
+      try {
         deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
         if (choice && choice.outcome === "accepted") {
           if (installContainer) installContainer.style.display = "none";
+          hideInstallModal();
         }
-        deferredPrompt = null;
-        installAppBtn.disabled = false;
-      });
-    }
-
-    window.addEventListener("appinstalled", () => {
+      } catch (err) {
+        console.warn("PWA prompt error:", err);
+      }
       deferredPrompt = null;
-      if (installContainer) installContainer.style.display = "none";
-    });
+    } else {
+      showInstallModal();
+    }
   }
 
-  if (iosModalClose && iosGuideModal) {
-    iosModalClose.addEventListener("click", () => {
-      iosGuideModal.style.display = "none";
-    });
-    iosGuideModal.addEventListener("click", (e) => {
-      if (e.target === iosGuideModal) {
-        iosGuideModal.style.display = "none";
+  window.addEventListener("beforeinstallprompt", (e) => {
+    // Prevent default browser banner and save the prompt event
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!isStandalone && installContainer) {
+      installContainer.style.display = "flex";
+    }
+    if (modalNativeInstallBtn) {
+      modalNativeInstallBtn.style.display = "inline-flex";
+    }
+  });
+
+  if (installAppBtn) {
+    installAppBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      triggerHaptic(14);
+      if (deferredPrompt) {
+        triggerNativePrompt();
+      } else {
+        showInstallModal();
       }
     });
   }
+
+  if (modalNativeInstallBtn) {
+    modalNativeInstallBtn.addEventListener("click", () => {
+      triggerHaptic(14);
+      triggerNativePrompt();
+    });
+  }
+
+  if (pwaModalClose) {
+    pwaModalClose.addEventListener("click", () => {
+      triggerHaptic(10);
+      hideInstallModal();
+    });
+  }
+
+  if (pwaModal) {
+    pwaModal.addEventListener("click", (e) => {
+      if (e.target === pwaModal) {
+        hideInstallModal();
+      }
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && pwaModal && pwaModal.style.display === "flex") {
+      hideInstallModal();
+    }
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    if (installContainer) installContainer.style.display = "none";
+    hideInstallModal();
+  });
 
   // 3. Service Worker Registration & Update Lifecycle
   if ("serviceWorker" in navigator) {
