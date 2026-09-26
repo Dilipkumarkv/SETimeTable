@@ -61,6 +61,21 @@ const state = {
   diagnostics: []
 };
 
+/**
+ * Triggers subtle tactile haptic feedback via window.navigator.vibrate() on mobile devices.
+ * Gracefully no-ops if unsupported or blocked by permissions.
+ * @param {number|number[]} pattern - Vibration duration in ms or pattern array
+ */
+export function triggerHaptic(pattern = 14) {
+  try {
+    if (typeof window !== "undefined" && window.navigator && typeof window.navigator.vibrate === "function") {
+      window.navigator.vibrate(pattern);
+    }
+  } catch {
+    // Ignore environments where navigator.vibrate is restricted or throws
+  }
+}
+
 // Global namespace for views and dev simulation
 window.TimetableApp = {
   getSlotState,
@@ -75,20 +90,25 @@ window.TimetableApp = {
   filterCurrentEntries,
   filterUpcomingEntries,
   filterDayGrid,
+  triggerHaptic,
+  vibrate: triggerHaptic,
   getFilters() {
     return { ...state.filters };
   },
   setBranchFilter(branch) {
+    triggerHaptic(14);
     state.filters.branch = branch;
     renderFilterBar();
     renderCurrentTab();
   },
   setLecturerFilter(lecturer) {
+    triggerHaptic(14);
     state.filters.lecturer = lecturer;
     renderFilterBar();
     renderCurrentTab();
   },
   resetFilters() {
+    triggerHaptic(22);
     state.filters.branch = "ALL";
     state.filters.lecturer = "ALL";
     renderFilterBar();
@@ -377,6 +397,7 @@ function setupEventListeners() {
   const tabBtns = document.querySelectorAll(".nav-tab-btn");
   tabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
+      triggerHaptic(10);
       tabBtns.forEach(b => {
         b.classList.remove("active");
         b.setAttribute("aria-selected", "false");
@@ -398,6 +419,7 @@ function setupEventListeners() {
   const simPanel = document.getElementById("sim-panel");
   if (toggleSimBtn && simPanel) {
     toggleSimBtn.addEventListener("click", () => {
+      triggerHaptic(12);
       const isCollapsed = simPanel.classList.toggle("collapsed");
       toggleSimBtn.setAttribute("aria-expanded", String(!isCollapsed));
     });
@@ -406,6 +428,7 @@ function setupEventListeners() {
   const quickResetBtn = document.getElementById("btn-quick-reset-sim");
   if (quickResetBtn) {
     quickResetBtn.addEventListener("click", () => {
+      triggerHaptic(18);
       window.TimetableApp.resetSimulation();
     });
   }
@@ -415,6 +438,7 @@ function setupEventListeners() {
   const simControls = document.getElementById("sim-controls");
   const simToggleText = document.getElementById("sim-toggle-text");
   const toggleSim = () => {
+    triggerHaptic(10);
     const isHidden = simControls.style.display === "none";
     simControls.style.display = isHidden ? "flex" : "none";
     simHeader.setAttribute("aria-expanded", isHidden ? "true" : "false");
@@ -441,6 +465,7 @@ function setupEventListeners() {
 
   if (simApplyBtn) {
     simApplyBtn.addEventListener("click", () => {
+      triggerHaptic(16);
       state.isSimulating = true;
       state.simDay = simDaySelect.value;
       state.simTime = simTimeInput.value || "09:45";
@@ -451,6 +476,7 @@ function setupEventListeners() {
 
   if (simResetBtn) {
     simResetBtn.addEventListener("click", () => {
+      triggerHaptic(18);
       window.TimetableApp.resetSimulation();
     });
   }
@@ -459,6 +485,7 @@ function setupEventListeners() {
   const presetBtns = document.querySelectorAll(".sim-preset-btn");
   presetBtns.forEach(btn => {
     btn.addEventListener("click", () => {
+      triggerHaptic(14);
       const day = btn.getAttribute("data-day");
       const time = btn.getAttribute("data-time");
       if (day && time) {
@@ -487,6 +514,7 @@ function setupHeaderDropdowns() {
   if (branchBtn && branchDropdown) {
     branchBtn.addEventListener("click", (e) => {
       e.stopPropagation();
+      triggerHaptic(8);
       const isOpen = branchDropdown.style.display === "flex";
       closeAllDropdowns();
       if (!isOpen) {
@@ -508,6 +536,7 @@ function setupHeaderDropdowns() {
   if (facultyBtn && facultyDropdown) {
     facultyBtn.addEventListener("click", (e) => {
       e.stopPropagation();
+      triggerHaptic(8);
       const isOpen = facultyDropdown.style.display === "flex";
       closeAllDropdowns();
       if (!isOpen) {

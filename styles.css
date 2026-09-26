@@ -3207,3 +3207,59 @@ select:focus-visible,
   gap: 8px;
 }
 
+/* ==========================================================================
+   Fluid Glassmorphism Entrance Animations (Perceived Fluidity)
+   ========================================================================== */
+@keyframes card-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.class-card,
+.timeline-entry-card,
+.today-state-card,
+.feed-free-slot-card,
+.workload-stats-card,
+.explore-room-card {
+  animation: card-fade-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Subtle Staggered Entrance for Card Lists */
+.timeline-entries-list > .timeline-entry-card:nth-child(1) { animation-delay: 0.02s; }
+.timeline-entries-list > .timeline-entry-card:nth-child(2) { animation-delay: 0.05s; }
+.timeline-entries-list > .timeline-entry-card:nth-child(3) { animation-delay: 0.08s; }
+.timeline-entries-list > .timeline-entry-card:nth-child(4) { animation-delay: 0.11s; }
+.timeline-entries-list > .timeline-entry-card:nth-child(5) { animation-delay: 0.14s; }
+.timeline-entries-list > .timeline-entry-card:nth-child(6) { animation-delay: 0.17s; }
+
+.class-card-list > .class-card:nth-child(1) { animation-delay: 0.02s; }
+.class-card-list > .class-card:nth-child(2) { animation-delay: 0.05s; }
+.class-card-list > .class-card:nth-child(3) { animation-delay: 0.08s; }
+.class-card-list > .class-card:nth-child(4) { animation-delay: 0.11s; }
+.class-card-list > .class-card:nth-child(5) { animation-delay: 0.14s; }
+.class-card-list > .class-card:nth-child(6) { animation-delay: 0.17s; }
+
+.feed-cards-grid > div:nth-child(1) { animation-delay: 0.02s; }
+.feed-cards-grid > div:nth-child(2) { animation-delay: 0.05s; }
+.feed-cards-grid > div:nth-child(3) { animation-delay: 0.08s; }
+.feed-cards-grid > div:nth-child(4) { animation-delay: 0.11s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .class-card,
+  .timeline-entry-card,
+  .today-state-card,
+  .feed-free-slot-card,
+  .workload-stats-card,
+  .explore-room-card,
+  .feed-cards-grid > div {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+

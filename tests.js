@@ -1137,6 +1137,14 @@ export async function runAllTests() {
     `searchClear: ${hasSearchClear}, branchJump: ${hasBranchJump}`
   );
 
+  // Test K8: Mobile Tactile Haptic Feedback Integration via window.navigator.vibrate()
+  const hasVibrateSupport = appJsContent.includes("navigator.vibrate") && appJsContent.includes("triggerHaptic");
+  assert(
+    "Micro-Interactions: app.js integrates window.navigator.vibrate() for tactile mobile haptic feedback on filtering and tabs",
+    hasVibrateSupport,
+    `navigator.vibrate integrated: ${hasVibrateSupport}`
+  );
+
   // -------------------------------------------------------------
   // Group L: Stage 2 — Phase 4 Final Polish, Presentation & Production Audit
   // -------------------------------------------------------------

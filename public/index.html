@@ -31,7 +31,7 @@
         if ('caches' in window) {
           caches.keys().then(function(names) {
             names.forEach(function(name) {
-              if (name !== 'timetable-cache-v18') {
+              if (name !== 'timetable-cache-v20') {
                 caches.delete(name);
               }
             });

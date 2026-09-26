@@ -543,6 +543,7 @@ function attachWeekEventListeners(container, weekState, onStateChange) {
   const scopeBtns = container.querySelectorAll(".week-scope-btn");
   scopeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(12);
       const scope = btn.getAttribute("data-scope");
       onStateChange({ ...weekState, scope });
     });
@@ -552,6 +553,7 @@ function attachWeekEventListeners(container, weekState, onStateChange) {
   const layoutBtns = container.querySelectorAll(".layout-toggle-btn");
   layoutBtns.forEach(btn => {
     btn.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(10);
       const layout = btn.getAttribute("data-layout");
       onStateChange({ ...weekState, layout });
     });
@@ -561,6 +563,7 @@ function attachWeekEventListeners(container, weekState, onStateChange) {
   const dayPills = container.querySelectorAll(".week-day-pill");
   dayPills.forEach(pill => {
     pill.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(12);
       const day = pill.getAttribute("data-day");
       onStateChange({ ...weekState, day });
     });
@@ -570,6 +573,7 @@ function attachWeekEventListeners(container, weekState, onStateChange) {
   const classSelect = container.querySelector("#week-class-select");
   if (classSelect) {
     classSelect.addEventListener("change", (e) => {
+      window.TimetableApp?.triggerHaptic?.(14);
       onStateChange({ ...weekState, selectedClass: e.target.value });
     });
   }
@@ -577,6 +581,7 @@ function attachWeekEventListeners(container, weekState, onStateChange) {
   const lecSelect = container.querySelector("#week-lecturer-select");
   if (lecSelect) {
     lecSelect.addEventListener("change", (e) => {
+      window.TimetableApp?.triggerHaptic?.(14);
       onStateChange({ ...weekState, selectedLecturer: e.target.value });
     });
   }
@@ -585,6 +590,7 @@ function attachWeekEventListeners(container, weekState, onStateChange) {
   const nowBtn = container.querySelector(".btn-now-shortcut");
   if (nowBtn) {
     nowBtn.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(10);
       const tabToday = document.getElementById("tab-today");
       if (tabToday) tabToday.click();
     });

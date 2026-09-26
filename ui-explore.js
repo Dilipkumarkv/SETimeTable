@@ -338,6 +338,7 @@ function attachExploreEventListeners(container, exploreState, onStateChange) {
   const chipBtns = container.querySelectorAll(".explore-chip-btn");
   chipBtns.forEach(btn => {
     btn.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(14);
       const filterKey = btn.getAttribute("data-filter");
       const filterVal = btn.getAttribute("data-value");
       onStateChange({ ...exploreState, [filterKey]: filterVal });
@@ -348,6 +349,7 @@ function attachExploreEventListeners(container, exploreState, onStateChange) {
   const lecSelect = container.querySelector("#explore-lecturer-select");
   if (lecSelect) {
     lecSelect.addEventListener("change", (e) => {
+      window.TimetableApp?.triggerHaptic?.(14);
       onStateChange({ ...exploreState, lecturer: e.target.value });
     });
   }
@@ -356,6 +358,7 @@ function attachExploreEventListeners(container, exploreState, onStateChange) {
   const classSelect = container.querySelector("#explore-class-select");
   if (classSelect) {
     classSelect.addEventListener("change", (e) => {
+      window.TimetableApp?.triggerHaptic?.(14);
       onStateChange({ ...exploreState, classId: e.target.value });
     });
   }
@@ -364,6 +367,7 @@ function attachExploreEventListeners(container, exploreState, onStateChange) {
   const clearAllBtn = container.querySelector("#explore-clear-all-btn");
   if (clearAllBtn) {
     clearAllBtn.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(22);
       onStateChange({
         query: "",
         branch: "ALL",
@@ -380,6 +384,7 @@ function attachExploreEventListeners(container, exploreState, onStateChange) {
   const emptyResetBtn = container.querySelector("#btn-empty-reset");
   if (emptyResetBtn) {
     emptyResetBtn.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(22);
       onStateChange({
         query: "",
         branch: "ALL",
@@ -396,6 +401,7 @@ function attachExploreEventListeners(container, exploreState, onStateChange) {
   const dismissChips = container.querySelectorAll(".filter-dismiss-chip");
   dismissChips.forEach(chip => {
     chip.addEventListener("click", () => {
+      window.TimetableApp?.triggerHaptic?.(18);
       const clearKey = chip.getAttribute("data-clear");
       const defaultVal = clearKey === "query" ? "" : "ALL";
       onStateChange({ ...exploreState, [clearKey]: defaultVal });
