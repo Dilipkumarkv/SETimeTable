@@ -133,40 +133,65 @@
       <button id="btn-quick-reset-sim" class="btn-quick-reset" type="button">Reset Clock</button>
     </div>
 
-    <!-- Collapsible Time Simulation Panel (Dev Tool - Hidden by Default) -->
+    <!-- Collapsible Settings & Developer Panel (Hidden by Default) -->
     <div id="sim-panel" class="sim-panel sim-panel-collapsible collapsed">
-      <div id="sim-header" class="sim-header" role="button" tabindex="0" aria-expanded="false" aria-controls="sim-controls">
-        <span>⏱ Simulate Time (Developer Testing Tool)</span>
-        <span id="sim-toggle-text" class="sim-toggle-pill">Hide Controls</span>
-      </div>
-      <div id="sim-controls" class="sim-controls" style="display: flex;">
-        <div class="sim-inputs-row">
-          <label for="sim-day">Day:
-            <select id="sim-day" aria-label="Simulate Day">
-              <option value="MON">MON</option>
-              <option value="TUE">TUE</option>
-              <option value="WED">WED</option>
-              <option value="THU">THU</option>
-              <option value="FRI">FRI</option>
-              <option value="SAT">SAT</option>
-              <option value="SUN">SUN</option>
-            </select>
-          </label>
-          <label for="sim-time">Time:
-            <input type="time" id="sim-time" value="12:00" aria-label="Simulate Time" />
-          </label>
-          <button id="sim-apply-btn" class="btn-secondary" type="button">Apply</button>
-          <button id="sim-reset-btn" class="btn-secondary" type="button" style="border-color: #64748b; color: #475569;">Reset to Real Clock</button>
+      <!-- Section 1: User & System Settings -->
+      <div class="settings-prod-section">
+        <div class="settings-prod-header">
+          <span class="settings-title">⚙️ Settings & System Information</span>
+          <span class="settings-version-badge">v24 • Offline Active</span>
         </div>
-        <div class="sim-presets-row">
-          <span class="sim-presets-label">Quick Presets:</span>
-          <div class="sim-presets-chips">
-            <button type="button" class="sim-preset-btn" data-day="MON" data-time="09:45">Mon P1 (09:45)</button>
-            <button type="button" class="sim-preset-btn" data-day="MON" data-time="11:35">Mon Lab (11:35)</button>
-            <button type="button" class="sim-preset-btn" data-day="MON" data-time="13:30">Lunch (13:30)</button>
-            <button type="button" class="sim-preset-btn" data-day="MON" data-time="14:00">Mon P5 (14:00)</button>
-            <button type="button" class="sim-preset-btn" data-day="MON" data-time="17:00">Evening (17:00)</button>
-            <button type="button" class="sim-preset-btn" data-day="SUN" data-time="11:00">Sunday</button>
+        <div class="settings-info-grid">
+          <div class="settings-info-item">
+            <span class="info-item-label">Campus</span>
+            <span class="info-item-value">SET Polytechnic</span>
+          </div>
+          <div class="settings-info-item">
+            <span class="info-item-label">Academic Year</span>
+            <span class="info-item-value">2026 Master Timetable</span>
+          </div>
+          <div class="settings-info-item">
+            <span class="info-item-label">Local Cache</span>
+            <span class="info-item-value">Synchronized (PWA)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Developer & QA Simulation Tools -->
+      <div class="settings-dev-section">
+        <div id="sim-header" class="sim-header" role="button" tabindex="0" aria-expanded="false" aria-controls="sim-controls">
+          <span class="dev-section-title">🔧 Developer & QA Controls (Simulation)</span>
+          <span id="sim-toggle-text" class="sim-toggle-pill">Hide Controls</span>
+        </div>
+        <div id="sim-controls" class="sim-controls" style="display: flex;">
+          <div class="sim-inputs-row">
+            <label for="sim-day">Day:
+              <select id="sim-day" aria-label="Simulate Day">
+                <option value="MON">MON</option>
+                <option value="TUE">TUE</option>
+                <option value="WED">WED</option>
+                <option value="THU">THU</option>
+                <option value="FRI">FRI</option>
+                <option value="SAT">SAT</option>
+                <option value="SUN">SUN</option>
+              </select>
+            </label>
+            <label for="sim-time">Time:
+              <input type="time" id="sim-time" value="12:00" aria-label="Simulate Time" />
+            </label>
+            <button id="sim-apply-btn" class="btn-secondary" type="button">Apply</button>
+            <button id="sim-reset-btn" class="btn-secondary" type="button" style="border-color: #64748b; color: #475569;">Reset to Real Clock</button>
+          </div>
+          <div class="sim-presets-row">
+            <span class="sim-presets-label">Quick Presets:</span>
+            <div class="sim-presets-chips">
+              <button type="button" class="sim-preset-btn" data-day="MON" data-time="09:45">Mon P1 (09:45)</button>
+              <button type="button" class="sim-preset-btn" data-day="MON" data-time="11:35">Mon Lab (11:35)</button>
+              <button type="button" class="sim-preset-btn" data-day="MON" data-time="13:30">Lunch (13:30)</button>
+              <button type="button" class="sim-preset-btn" data-day="MON" data-time="14:00">Mon P5 (14:00)</button>
+              <button type="button" class="sim-preset-btn" data-day="MON" data-time="17:00">Evening (17:00)</button>
+              <button type="button" class="sim-preset-btn" data-day="SUN" data-time="11:00">Sunday</button>
+            </div>
           </div>
         </div>
       </div>

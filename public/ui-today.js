@@ -69,30 +69,43 @@ export function renderTodayView(container, data, currentDate, filters = { branch
       </section>
   `;
 
-  // Closed / Sunday state
+  // Closed / Sunday state: Unified, compact card without redundant text
   if (!isWorkingDay || status === "closed") {
     html += `
-      <div class="today-state-card today-closed-card" role="region" aria-label="College Closed">
-        <div class="state-icon">🏛️</div>
-        <h2 class="state-title">College Closed Today</h2>
-        <p class="state-description">${statusSummary}</p>
-        <p class="state-subtext">The master timetable operates Monday through Saturday. Classes resume on <strong>${nextFullDayName} at 09:45</strong>.</p>
+      <div class="today-state-card" role="region" aria-label="College Closed">
+        <div class="state-header-row">
+          <span class="state-date-badge">${fullDayName} · ${timeStr}</span>
+          <span class="today-status-chip status-closed" role="status">Campus Closed</span>
+        </div>
+        <div class="state-main-body">
+          <h2 class="state-title">College is closed today</h2>
+          <p class="state-subtext">The master timetable operates Monday through Saturday.</p>
+        </div>
+        <div class="state-next-session-box">
+          <span class="next-session-label">Classes Resume</span>
+          <span class="next-session-target"><strong>${nextFullDayName}</strong> at <strong>09:45</strong></span>
+        </div>
       </div>
     </div>`;
     container.innerHTML = html;
     return;
   }
 
-  // After college state
+  // After college state: Single, compact, dignified card without duplicate text or giant emoji
   if (status === "after") {
     html += `
-      <div class="today-state-card today-concluded-card" role="region" aria-label="Timetable Concluded">
-        <div class="state-icon">✅</div>
-        <h2 class="state-title">Today's Schedule Complete</h2>
-        <p class="state-description">${statusSummary}</p>
-        <div class="next-day-preview-box">
-          <span class="next-day-pill">Up Next</span>
-          <p>Teaching sessions resume tomorrow (<strong>${nextFullDayName}</strong>) starting at <strong>09:45</strong>.</p>
+      <div class="today-state-card" role="region" aria-label="Schedule Complete">
+        <div class="state-header-row">
+          <span class="state-date-badge">${fullDayName} · ${timeStr}</span>
+          <span class="today-status-chip status-after" role="status">Schedule Complete</span>
+        </div>
+        <div class="state-main-body">
+          <h2 class="state-title">Today's schedule is complete</h2>
+          <p class="state-subtext">All scheduled teaching sessions for today have concluded.</p>
+        </div>
+        <div class="state-next-session-box">
+          <span class="next-session-label">Next Teaching Day</span>
+          <span class="next-session-target"><strong>${nextFullDayName}</strong> starting at <strong>09:45</strong></span>
         </div>
       </div>
     </div>`;
@@ -112,8 +125,10 @@ export function renderTodayView(container, data, currentDate, filters = { branch
         <div class="timeline-block block-complete" role="article" aria-label="Day Complete Marker">
           <div class="timeline-node node-complete"></div>
           <div class="timeline-block-content complete-content">
-            <span class="complete-badge">🏁 Day Complete</span>
-            <span class="complete-time">${block.timeSpan}</span>
+            <div class="complete-header-row">
+              <span class="complete-badge">🏁 Day Complete</span>
+              <span class="complete-time">${block.timeSpan}</span>
+            </div>
             <p class="complete-note">${block.statusSummary}</p>
           </div>
         </div>
@@ -128,7 +143,7 @@ export function renderTodayView(container, data, currentDate, filters = { branch
           <div class="timeline-node node-break"></div>
           <div class="timeline-block-content break-content">
             <div class="break-header">
-              <span class="break-pill">${isNowBreak ? '☕ BREAK NOW' : '☕ BREAK'}</span>
+              <span class="break-pill">${isNowBreak ? '☕ Break Now' : '☕ Break'}</span>
               <span class="break-time">${block.timeSpan} (${block.durationStr})</span>
               ${block.timeRemaining ? `<span class="countdown-badge badge-now">${block.timeRemaining.text}</span>` : ''}
               ${block.relativeTime && !isNowBreak ? `<span class="countdown-badge badge-relative">${block.relativeTime}</span>` : ''}
@@ -151,12 +166,12 @@ export function renderTodayView(container, data, currentDate, filters = { branch
 
     if (isNow) {
       blockClass = "block-now";
-      badgeLabel = "🔴 NOW ACTIVE";
-      badgeClass = "badge-now-pulse";
+      badgeLabel = "● NOW";
+      badgeClass = "badge-now-live";
       activeBlockRendered = true;
     } else if (isNext) {
       blockClass = "block-next";
-      badgeLabel = "⏳ UP NEXT";
+      badgeLabel = "UP NEXT";
       badgeClass = "badge-next";
     }
 

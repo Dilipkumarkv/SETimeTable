@@ -56,33 +56,33 @@ export function renderWeekView(container, data, currentDate, weekState, onStateC
   let html = `
     <div class="week-screen" role="region" aria-label="Weekly Timetable Exploration">
       
-      <!-- Top Explorer Toolbar: Scope Selector & Global NOW Action -->
+      <!-- Top Explorer Toolbar: Scope Selector & View Mode -->
       <div class="week-toolbar">
         <div class="week-scope-group" role="tablist" aria-label="Exploration Scope">
           <button type="button" class="week-scope-btn ${scope === 'all' ? 'active' : ''}" data-scope="all" role="tab" aria-selected="${scope === 'all'}">
-            🏛 All Classes
+            All Classes
           </button>
           <button type="button" class="week-scope-btn ${scope === 'class' ? 'active' : ''}" data-scope="class" role="tab" aria-selected="${scope === 'class'}">
-            🎓 By Class
+            By Class
           </button>
           <button type="button" class="week-scope-btn ${scope === 'lecturer' ? 'active' : ''}" data-scope="lecturer" role="tab" aria-selected="${scope === 'lecturer'}">
-            👨‍🏫 By Faculty
+            By Faculty
           </button>
         </div>
 
         <div class="week-toolbar-actions">
           <!-- View Switcher (Feed vs Grid) -->
           <div class="week-layout-switcher" role="group" aria-label="Layout view">
-            <button type="button" class="layout-toggle-btn ${layout === 'feed' ? 'active' : ''}" data-layout="feed" title="Mobile-first card feed">
-              📱 Feed
+            <button type="button" class="layout-toggle-btn ${layout === 'feed' ? 'active' : ''}" data-layout="feed" title="Card feed layout">
+              Feed
             </button>
             <button type="button" class="layout-toggle-btn ${layout === 'grid' ? 'active' : ''}" data-layout="grid" title="Full table matrix">
-              📊 Grid
+              Grid
             </button>
           </div>
 
           <button type="button" class="btn-now-shortcut" title="Jump to today's live state">
-            ⚡ Live Now
+            Live Now
           </button>
         </div>
       </div>
@@ -92,7 +92,7 @@ export function renderWeekView(container, data, currentDate, weekState, onStateC
   if (scope === "class") {
     html += `
       <div class="week-entity-picker">
-        <label class="entity-picker-label" for="week-class-select">Select Class:</label>
+        <label class="entity-picker-label" for="week-class-select">Class:</label>
         <select id="week-class-select" class="entity-select" aria-label="Select class">
           ${data.classes.map(c => `
             <option value="${c.id}" ${c.id === selectedClass ? 'selected' : ''}>
@@ -100,13 +100,12 @@ export function renderWeekView(container, data, currentDate, weekState, onStateC
             </option>
           `).join("")}
         </select>
-        <span class="entity-active-pill">${selectedClass}</span>
       </div>
     `;
   } else if (scope === "lecturer") {
     html += `
       <div class="week-entity-picker">
-        <label class="entity-picker-label" for="week-lecturer-select">Select Faculty Member:</label>
+        <label class="entity-picker-label" for="week-lecturer-select">Faculty:</label>
         <select id="week-lecturer-select" class="entity-select" aria-label="Select faculty">
           ${Object.keys(data.lecturers).map(init => {
             const l = data.lecturers[init];
@@ -114,7 +113,6 @@ export function renderWeekView(container, data, currentDate, weekState, onStateC
             return `<option value="${init}" ${init === selectedLecturer ? 'selected' : ''}>${name}</option>`;
           }).join("")}
         </select>
-        <span class="entity-active-pill">${data.lecturers[selectedLecturer]?.name || selectedLecturer}</span>
       </div>
     `;
   }
@@ -163,7 +161,7 @@ function renderFeedLayout(data, selectedDay, scope, selectedClass, selectedLectu
     html += `
       <div class="feed-day-header">
         <h3 class="feed-day-title">Schedule for ${selectedDay}</h3>
-        <span class="feed-day-count">${dayFeed.totalEntries} scheduled session${dayFeed.totalEntries === 1 ? '' : 's'}</span>
+        <span class="feed-day-count">${dayFeed.totalEntries} session${dayFeed.totalEntries === 1 ? '' : 's'}</span>
       </div>
     `;
 
