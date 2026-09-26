@@ -1,37 +1,138 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
-  <!-- Warm espresso background with smooth continuous squircle -->
-  <rect width="512" height="512" rx="116" fill="#2a1b12"/>
-  
-  <!-- Subtle warm ambient glow behind card -->
-  <circle cx="256" cy="256" r="210" fill="#a7673b" fill-opacity="0.18"/>
-  
-  <!-- Sleek geometric grid card (Warm parchment container) -->
-  <rect x="76" y="86" width="360" height="340" rx="28" fill="#f6f1eb" stroke="#ebdcd0" stroke-width="6"/>
-  
-  <!-- Warm terracotta header banner -->
-  <path d="M76 114C76 98.536 88.536 86 104 86H408C423.464 86 436 98.536 436 114V156H76V114Z" fill="#a7673b"/>
-  
-  <!-- Minimalist timetable column dividers in soft warm sand -->
-  <line x1="166" y1="156" x2="166" y2="426" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
-  <line x1="256" y1="156" x2="256" y2="426" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
-  <line x1="346" y1="156" x2="346" y2="426" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
-  
-  <!-- Horizontal period dividers -->
-  <line x1="76" y1="246" x2="436" y2="246" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
-  <line x1="76" y1="336" x2="436" y2="336" stroke="#2a1b12" stroke-opacity="0.1" stroke-width="4"/>
-  
-  <!-- Active live slot highlight (Terracotta accent tile) -->
-  <rect x="176" y="166" width="70" height="70" rx="14" fill="#a7673b" fill-opacity="0.85"/>
-  <rect x="188" y="178" width="46" height="46" rx="8" fill="#ffffff" fill-opacity="0.25"/>
-  
-  <!-- Central Minimalist Clock Icon Emblem in Warm Sand -->
-  <circle cx="346" cy="336" r="64" fill="#2a1b12" stroke="#ebdcd0" stroke-width="8"/>
-  <circle cx="346" cy="336" r="54" fill="#a7673b"/>
-  <!-- Clock hands at 09:45 -->
-  <line x1="346" y1="336" x2="316" y2="336" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
-  <line x1="346" y1="336" x2="346" y2="306" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
-  <circle cx="346" cy="336" r="5" fill="#ffffff"/>
-  
-  <!-- Clean Wordmark Text -->
-  <text x="256" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="4">SET POLYTECHNIC</text>
+  <defs>
+    <!-- Background Gradient: Deep Espresso to Rich Dark Roast -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#342217" />
+      <stop offset="100%" stop-color="#1f130c" />
+    </linearGradient>
+
+    <!-- Warm Terracotta Gradient -->
+    <linearGradient id="terracottaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b87343" />
+      <stop offset="100%" stop-color="#935429" />
+    </linearGradient>
+
+    <!-- Parchment Surface Gradient -->
+    <linearGradient id="parchmentGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f6efe7" />
+    </linearGradient>
+
+    <!-- Champagne Brass Rings -->
+    <linearGradient id="brassGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f5d3b3" />
+      <stop offset="50%" stop-color="#dfa87e" />
+      <stop offset="100%" stop-color="#b67a4e" />
+    </linearGradient>
+
+    <!-- Subtle Inner Glow Filter -->
+    <radialGradient id="ambientGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#a7673b" stop-opacity="0.32" />
+      <stop offset="100%" stop-color="#a7673b" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Card Drop Shadow -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0e0704" flood-opacity="0.55" />
+    </filter>
+
+    <!-- Clock Badge Shadow -->
+    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0e0704" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Base Squircle -->
+  <rect width="512" height="512" rx="116" fill="url(#bgGrad)" />
+  <rect width="512" height="512" rx="116" fill="url(#ambientGlow)" />
+  <!-- Subtle 1px warm border rim -->
+  <rect x="2" y="2" width="508" height="508" rx="114" fill="none" stroke="#5c3c28" stroke-width="3" stroke-opacity="0.6" />
+
+  <!-- Main Timetable Card Container with Shadow -->
+  <g filter="url(#cardShadow)">
+    <rect x="80" y="88" width="352" height="344" rx="36" fill="url(#parchmentGrad)" stroke="#ebd9ca" stroke-width="4" />
+    
+    <!-- Top Terracotta Header Section -->
+    <path d="M80 124 C80 104.118 96.118 88 116 88 H396 C415.882 88 432 104.118 432 124 V170 H80 Z" fill="url(#terracottaGrad)" />
+    
+    <!-- Header Separation Hairline -->
+    <line x1="80" y1="170" x2="432" y2="170" stroke="#874720" stroke-width="2" />
+
+    <!-- Minimalist Academic Pillars / Column Icon in Header -->
+    <g transform="translate(196, 108)" fill="#ffffff">
+      <!-- Pediment / Roof -->
+      <polygon points="60,4 0,22 120,22" />
+      <!-- Architrave -->
+      <rect x="6" y="24" width="108" height="6" rx="2" />
+      <!-- Pillars (4 clean columns) -->
+      <rect x="14" y="32" width="12" height="20" rx="2" />
+      <rect x="42" y="32" width="12" height="20" rx="2" />
+      <rect x="66" y="32" width="12" height="20" rx="2" />
+      <rect x="94" y="32" width="12" height="20" rx="2" />
+      <!-- Base Plinth -->
+      <rect x="4" y="52" width="112" height="6" rx="2" />
+    </g>
+
+    <!-- Schedule Matrix Grid Rows & Columns -->
+    <g transform="translate(104, 190)">
+      <!-- Day Row 1: Active Period Strip -->
+      <rect x="0" y="0" width="70" height="42" rx="10" fill="#2a1b12" fill-opacity="0.08" />
+      <text x="35" y="27" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800" fill="#2a1b12" text-anchor="middle">MON</text>
+
+      <!-- Slot 1: Active / Live Class Slot (Terracotta Accent) -->
+      <rect x="80" y="0" width="138" height="42" rx="10" fill="url(#terracottaGrad)" />
+      <text x="149" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">CS-III · P3</text>
+      
+      <!-- Slot 2: Secondary Slot -->
+      <rect x="228" y="0" width="76" height="42" rx="10" fill="#ebdcd0" fill-opacity="0.7" />
+      <text x="266" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#5c4334" text-anchor="middle">EC-V</text>
+
+      <!-- Day Row 2 -->
+      <rect x="0" y="52" width="70" height="42" rx="10" fill="#2a1b12" fill-opacity="0.05" />
+      <text x="35" y="79" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800" fill="#7d6050" text-anchor="middle">TUE</text>
+
+      <!-- Slot row 2 entries -->
+      <rect x="80" y="52" width="86" height="42" rx="10" fill="#f0e5da" />
+      <text x="123" y="78" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#5c4334" text-anchor="middle">ME-I</text>
+
+      <rect x="176" y="52" width="128" height="42" rx="10" fill="#2a1b12" fill-opacity="0.06" />
+      <text x="240" y="78" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#7d6050" text-anchor="middle">EE-III LAB</text>
+
+      <!-- Day Row 3 -->
+      <rect x="0" y="104" width="70" height="42" rx="10" fill="#2a1b12" fill-opacity="0.05" />
+      <text x="35" y="131" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800" fill="#7d6050" text-anchor="middle">WED</text>
+
+      <rect x="80" y="104" width="138" height="42" rx="10" fill="#f0e5da" />
+      <text x="149" y="130" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#5c4334" text-anchor="middle">CE-V · LAB</text>
+    </g>
+
+    <!-- Calendar Ring Clips (Champagne Brass) -->
+    <rect x="142" y="66" width="22" height="44" rx="11" fill="url(#brassGrad)" stroke="#744422" stroke-width="2.5" />
+    <rect x="348" y="66" width="22" height="44" rx="11" fill="url(#brassGrad)" stroke="#744422" stroke-width="2.5" />
+  </g>
+
+  <!-- Overlapping Round Timepiece Badge in Bottom-Right -->
+  <g filter="url(#badgeShadow)" transform="translate(348, 350)">
+    <!-- Outer Deep Espresso Rim -->
+    <circle cx="0" cy="0" r="76" fill="#20140c" stroke="#d5a078" stroke-width="4" />
+    <!-- Warm Terracotta Bezel -->
+    <circle cx="0" cy="0" r="66" fill="url(#terracottaGrad)" />
+    <!-- Clock Face in Cream Ivory -->
+    <circle cx="0" cy="0" r="54" fill="#fffbf7" />
+
+    <!-- 12, 3, 6, 9 Hour Pips -->
+    <circle cx="0" cy="-44" r="3.5" fill="#3c271b" />
+    <circle cx="44" cy="0" r="3.5" fill="#3c271b" />
+    <circle cx="0" cy="44" r="3.5" fill="#3c271b" />
+    <circle cx="-44" cy="0" r="3.5" fill="#3c271b" />
+
+    <!-- Clock Hands: 09:45 Academic Bell Schedule -->
+    <!-- Hour hand pointing to ~10 (approx -65 deg) -->
+    <line x1="0" y1="0" x2="-22" y2="-12" stroke="#2a1b12" stroke-width="5" stroke-linecap="round" />
+    <!-- Minute hand pointing to 45 mins (-90 deg: 9 o'clock) -->
+    <line x1="0" y1="0" x2="-38" y2="0" stroke="#a7673b" stroke-width="4" stroke-linecap="round" />
+    <!-- Center Pivot Pin -->
+    <circle cx="0" cy="0" r="6" fill="#2a1b12" />
+    <circle cx="0" cy="0" r="2.5" fill="#ffffff" />
+  </g>
 </svg>

@@ -189,35 +189,38 @@ select:focus-visible,
 }
 
 .sample-banner {
-  background-color: var(--warning-bg);
-  color: var(--warning-text);
-  border-bottom: 2px solid var(--warning-border);
-  padding: 8px 12px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: 0.04em;
+  display: none !important;
 }
 
 /* ==========================================================================
    Header & Brand Section
    ========================================================================== */
 .app-header {
-  background-color: rgba(246, 241, 235, 0.82);
+  background-color: rgba(246, 241, 235, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(235, 220, 208, 0.8);
-  padding: 10px 16px;
-  min-height: 60px;
+  padding: 10px 16px 12px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
   position: sticky;
   top: 0;
   z-index: 50;
   box-shadow: 0 4px 18px rgba(60, 42, 28, 0.04);
+}
+
+.app-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.header-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .brand-container {
@@ -262,6 +265,119 @@ select:focus-visible,
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+/* Header Collapsible Menu Containers */
+.header-menu-container {
+  position: relative;
+}
+
+.header-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 6px 12px;
+  min-height: 40px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(60, 42, 28, 0.04);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.header-menu-btn:hover {
+  background-color: var(--bg-muted);
+  border-color: var(--border-strong);
+}
+
+.header-menu-btn.active-filter {
+  background-color: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.menu-btn-label strong {
+  font-weight: 800;
+}
+
+.menu-chevron {
+  transition: transform 0.2s ease;
+  color: var(--text-muted);
+}
+
+.header-menu-btn[aria-expanded="true"] .menu-chevron {
+  transform: rotate(180deg);
+}
+
+/* Header Dropdown Menus */
+.header-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 170px;
+  max-width: 260px;
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  padding: 6px;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: dropdown-fade-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdown-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-dropdown-scrollable {
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.header-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s ease;
+}
+
+.header-dropdown-item:hover {
+  background-color: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.header-dropdown-item.active {
+  background-color: #f3ede2;
+  color: var(--text-primary);
+  font-weight: 800;
 }
 
 .install-container {
@@ -291,18 +407,19 @@ select:focus-visible,
 }
 
 .btn-sim-toggle {
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
   color: var(--text-secondary);
   background-color: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 6px 12px;
+  padding: 6px 10px;
   cursor: pointer;
   min-height: 40px;
+  min-width: 40px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   box-shadow: 0 1px 4px rgba(60, 42, 28, 0.04);
   transition: all 0.15s ease;
 }
@@ -311,6 +428,7 @@ select:focus-visible,
   background-color: var(--bg-muted);
   color: var(--text-primary);
   border-color: var(--border-strong);
+  transform: translateY(-1px);
 }
 
 .live-clock-badge {
