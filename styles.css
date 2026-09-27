@@ -196,10 +196,8 @@ select:focus-visible,
    Header & Brand Section
    ========================================================================== */
 .app-header {
-  background-color: rgba(246, 241, 235, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(235, 220, 208, 0.8);
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
   padding: 10px 16px 12px;
   display: flex;
   flex-direction: column;
@@ -207,7 +205,7 @@ select:focus-visible,
   position: sticky;
   top: 0;
   z-index: 50;
-  box-shadow: 0 4px 18px rgba(60, 42, 28, 0.04);
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.05);
 }
 
 .app-header-top {
@@ -758,10 +756,8 @@ select:focus-visible,
    Global Filter Bar (Stage 2: Ergonomic Horizontal Chips & Select)
    ========================================================================== */
 .global-filter-bar {
-  background: rgba(246, 241, 235, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(235, 220, 208, 0.8);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
@@ -1241,17 +1237,15 @@ select:focus-visible,
 }
 
 .class-card {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(235, 220, 208, 0.8);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   border-left: 4px solid var(--border-color);
-  box-shadow: 0 4px 16px rgba(60, 42, 28, 0.04);
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.04);
 }
 
 /* Branch Left Border Accent Strips */
@@ -1815,15 +1809,13 @@ select:focus-visible,
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(246, 241, 235, 0.82);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(235, 220, 208, 0.8);
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
   display: flex;
   height: 62px;
   z-index: 100;
   padding-bottom: max(0px, env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 16px rgba(60, 42, 28, 0.05);
+  box-shadow: 0 -1px 3px rgba(60, 42, 28, 0.05);
 }
 
 .nav-tab-btn {
@@ -1893,15 +1885,13 @@ select:focus-visible,
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(30, 20, 15, 0.48);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background-color: rgba(30, 20, 15, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
   z-index: 1000;
-  animation: modal-fade-in 0.22s ease-out;
+  animation: modal-fade-in 0.18s ease-out;
 }
 
 @keyframes modal-fade-in {
@@ -1910,19 +1900,17 @@ select:focus-visible,
 }
 
 .modal-card {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(235, 220, 208, 0.95);
-  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
   padding: 24px;
   max-width: 440px;
   width: 100%;
-  box-shadow: 0 20px 45px -10px rgba(60, 42, 28, 0.22);
+  box-shadow: 0 10px 30px -5px rgba(60, 42, 28, 0.2);
   display: flex;
   flex-direction: column;
   gap: 16px;
-  animation: modal-pop 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modal-pop 0.2s ease-out;
   box-sizing: border-box;
 }
 
@@ -2246,13 +2234,11 @@ select:focus-visible,
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(235, 220, 208, 0.8);
-  border-radius: 20px;
-  padding: 14px 18px;
-  box-shadow: 0 4px 18px -2px rgba(60, 42, 28, 0.05), 0 1px 4px -1px rgba(60, 42, 28, 0.03);
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.04);
 }
 
 .today-summary-left {
@@ -2719,20 +2705,17 @@ select:focus-visible,
   position: relative;
   display: flex;
   align-items: stretch;
-  background-color: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(235, 220, 208, 0.85);
-  border-radius: 16px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 16px -2px rgba(60, 42, 28, 0.05);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .timeline-entry-card:hover {
   border-color: var(--border-strong);
-  box-shadow: 0 6px 20px -2px rgba(60, 42, 28, 0.09);
-  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(60, 42, 28, 0.07);
 }
 
 .card-indicator-strip {
@@ -2901,23 +2884,21 @@ select:focus-visible,
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  background-color: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(235, 220, 208, 0.8);
-  border-radius: 18px;
-  padding: 10px 14px;
-  box-shadow: 0 4px 16px -2px rgba(60, 42, 28, 0.04);
+  gap: 10px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 8px 12px;
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.04);
 }
 
 .week-scope-group {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   background-color: var(--bg-muted);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 4px;
+  border-radius: 10px;
+  padding: 3px;
   flex-wrap: wrap;
 }
 
@@ -2926,11 +2907,11 @@ select:focus-visible,
   border: 1px solid transparent;
   color: var(--text-secondary);
   font-size: 0.82rem;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 10px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
   cursor: pointer;
-  min-height: 40px;
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -2941,7 +2922,7 @@ select:focus-visible,
   background-color: #ffffff;
   color: var(--text-primary);
   border-color: var(--border-color);
-  box-shadow: 0 2px 6px rgba(60, 42, 28, 0.08);
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.08);
 }
 
 .week-toolbar-actions {
@@ -2955,39 +2936,39 @@ select:focus-visible,
   display: inline-flex;
   background-color: var(--bg-muted);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 2px;
 }
 
 .layout-toggle-btn {
   background: transparent;
   border: none;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 500;
   color: var(--text-muted);
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
   cursor: pointer;
-  min-height: 38px;
+  min-height: 32px;
   transition: all 0.15s ease;
 }
 
 .layout-toggle-btn.active {
   background-color: #ffffff;
   color: var(--text-primary);
-  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.08);
+  box-shadow: 0 1px 2px rgba(60, 42, 28, 0.06);
 }
 
 .btn-now-shortcut {
-  font-size: 0.8rem;
-  font-weight: 650;
-  color: var(--text-secondary);
-  background-color: var(--bg-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background-color: transparent;
   border: 1px solid var(--border-color);
-  padding: 6px 12px;
-  border-radius: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
   cursor: pointer;
-  min-height: 38px;
+  min-height: 32px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -3225,50 +3206,54 @@ select:focus-visible,
   margin-bottom: 6px;
 }
 
-/* Workload Statistics Card */
+/* Workload Statistics Card — Secondary Metadata */
 .workload-stats-card {
-  background-color: var(--bg-primary);
+  background-color: #ffffff;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 12px 16px;
+  border-radius: 10px;
+  padding: 8px 12px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .workload-stats-header {
-  font-size: 0.95rem;
-  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .workload-chips-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .workload-chip {
-  font-size: 0.82rem;
-  padding: 3px 10px;
-  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 6px;
 }
 
 .chip-total {
-  background-color: var(--accent-light);
-  color: var(--accent);
-  border: 1px solid var(--accent-border);
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .chip-theory {
-  background-color: #f1f5f9;
-  color: #334155;
-  border: 1px solid #cbd5e1;
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .chip-lab {
-  background-color: #f0fdf4;
-  color: #15803d;
-  border: 1px solid #86efac;
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 /* Collision Warning Card */
@@ -3528,16 +3513,14 @@ select:focus-visible,
 }
 
 /* ==========================================================================
-   Fluid Glassmorphism Entrance Animations (Perceived Fluidity)
+   Refined Micro-Transitions (Flat & Functional)
    ========================================================================== */
 @keyframes card-fade-in {
   0% {
-    opacity: 0;
-    transform: translateY(6px);
+    opacity: 0.85;
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -3547,28 +3530,8 @@ select:focus-visible,
 .feed-free-slot-card,
 .workload-stats-card,
 .explore-room-card {
-  animation: card-fade-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: card-fade-in 0.1s ease-out both;
 }
-
-/* Subtle Staggered Entrance for Card Lists */
-.timeline-entries-list > .timeline-entry-card:nth-child(1) { animation-delay: 0.02s; }
-.timeline-entries-list > .timeline-entry-card:nth-child(2) { animation-delay: 0.05s; }
-.timeline-entries-list > .timeline-entry-card:nth-child(3) { animation-delay: 0.08s; }
-.timeline-entries-list > .timeline-entry-card:nth-child(4) { animation-delay: 0.11s; }
-.timeline-entries-list > .timeline-entry-card:nth-child(5) { animation-delay: 0.14s; }
-.timeline-entries-list > .timeline-entry-card:nth-child(6) { animation-delay: 0.17s; }
-
-.class-card-list > .class-card:nth-child(1) { animation-delay: 0.02s; }
-.class-card-list > .class-card:nth-child(2) { animation-delay: 0.05s; }
-.class-card-list > .class-card:nth-child(3) { animation-delay: 0.08s; }
-.class-card-list > .class-card:nth-child(4) { animation-delay: 0.11s; }
-.class-card-list > .class-card:nth-child(5) { animation-delay: 0.14s; }
-.class-card-list > .class-card:nth-child(6) { animation-delay: 0.17s; }
-
-.feed-cards-grid > div:nth-child(1) { animation-delay: 0.02s; }
-.feed-cards-grid > div:nth-child(2) { animation-delay: 0.05s; }
-.feed-cards-grid > div:nth-child(3) { animation-delay: 0.08s; }
-.feed-cards-grid > div:nth-child(4) { animation-delay: 0.11s; }
 
 @media (prefers-reduced-motion: reduce) {
   .class-card,

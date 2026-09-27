@@ -48,12 +48,15 @@ export function renderTodayView(container, data, currentDate, filters = { branch
     timeStr,
     statusSummary,
     nextFullDayName,
+    nextSessionTime,
     isWorkingDay,
     timelineItems
   } = timeline;
 
   const isFiltered = (filters.branch && filters.branch !== "ALL") ||
                      (filters.lecturer && filters.lecturer !== "ALL");
+
+  const resumeTime = nextSessionTime || "09:45";
 
   let html = `
     <div class="today-screen">
@@ -83,7 +86,7 @@ export function renderTodayView(container, data, currentDate, filters = { branch
         </div>
         <div class="state-next-session-box">
           <span class="next-session-label">Classes Resume</span>
-          <span class="next-session-target"><strong>${nextFullDayName}</strong> at <strong>09:45</strong></span>
+          <span class="next-session-target"><strong>${nextFullDayName}</strong> at <strong>${resumeTime}</strong></span>
         </div>
       </div>
     </div>`;
@@ -101,11 +104,11 @@ export function renderTodayView(container, data, currentDate, filters = { branch
         </div>
         <div class="state-main-body">
           <h2 class="state-title">Today's schedule is complete</h2>
-          <p class="state-subtext">All scheduled teaching sessions for today have concluded.</p>
+          <p class="state-subtext">Classes resume ${nextFullDayName} at ${resumeTime}</p>
         </div>
         <div class="state-next-session-box">
-          <span class="next-session-label">Next Teaching Day</span>
-          <span class="next-session-target"><strong>${nextFullDayName}</strong> starting at <strong>09:45</strong></span>
+          <span class="next-session-label">Classes Resume</span>
+          <span class="next-session-target"><strong>${nextFullDayName}</strong> at <strong>${resumeTime}</strong></span>
         </div>
       </div>
     </div>`;

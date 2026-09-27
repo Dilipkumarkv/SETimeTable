@@ -76,6 +76,33 @@ export function triggerHaptic(pattern = 14) {
   }
 }
 
+/**
+ * Checks whether Developer / Simulation Mode is active.
+ * Production mode (default): Dev panel & toggle button are hidden. Timetable uses real clock.
+ * Dev mode: Enabled via ?dev=true / ?sim=true URL parameter, or localStorage.getItem("devMode") === "true".
+ */
+export function isDevModeActive() {
+  try {
+    if (typeof window !== "undefined" && window.location) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("dev") === "true" || params.get("sim") === "true") {
+        return true;
+      }
+      if (params.get("dev") === "false" || params.get("sim") === "false") {
+        return false;
+      }
+    }
+    if (typeof localStorage !== "undefined") {
+      const stored = localStorage.getItem("devMode");
+      if (stored === "true") return true;
+      if (stored === "false") return false;
+    }
+  } catch (e) {
+    // Fallback safely to production mode
+  }
+  return false;
+}
+
 // Global namespace for views and dev simulation
 window.TimetableApp = {
   getSlotState,
@@ -159,6 +186,19 @@ window.TimetableApp = {
     if (simTimeInput) simTimeInput.value = "12:00";
     updateHeaderClock();
     renderCurrentTab();
+  },
+  isDevMode: isDevModeActive,
+  enableDevMode() {
+    try {
+      localStorage.setItem("devMode", "true");
+    } catch (e) {}
+    if (typeof window !== "undefined") window.location.reload();
+  },
+  disableDevMode() {
+    try {
+      localStorage.removeItem("devMode");
+    } catch (e) {}
+    if (typeof window !== "undefined") window.location.reload();
   }
 };
 
@@ -188,6 +228,7 @@ function getCurrentEffectiveDate() {
  */
 function updateHeaderClock() {
   const clockEl = document.getElementById("header-clock");
+  if (!clockEl) return;
   const effDate = getCurrentEffectiveDate();
   const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const dayName = days[effDate.getDay()];
@@ -415,8 +456,35 @@ function setupEventListeners() {
   });
 
   // Top Header Dev Toggle & Quick Reset
+  const isDev = isDevModeActive();
   const toggleSimBtn = document.getElementById("toggle-sim-btn");
   const simPanel = document.getElementById("sim-panel");
+
+  if (!isDev) {
+    // Production Mode: Hide developer controls & drawer completely from end users
+    if (toggleSimBtn) {
+      toggleSimBtn.style.display = "none";
+      toggleSimBtn.setAttribute("aria-hidden", "true");
+    }
+    if (simPanel) {
+      simPanel.style.display = "none";
+      simPanel.setAttribute("aria-hidden", "true");
+    }
+    // Guarantee real-time clock in production mode
+    state.isSimulating = false;
+  } else {
+    // Developer Mode: Reveal Settings & Simulation Drawer
+    if (toggleSimBtn) {
+      toggleSimBtn.style.display = "inline-flex";
+      toggleSimBtn.removeAttribute("aria-hidden");
+    }
+    if (simPanel) {
+      simPanel.style.display = "";
+      simPanel.removeAttribute("aria-hidden");
+    }
+    console.info("🛠️ [Timetable Dev Mode Active] Developer controls enabled. (To disable: ?dev=false or TimetableApp.disableDevMode())");
+  }
+
   if (toggleSimBtn && simPanel) {
     toggleSimBtn.addEventListener("click", () => {
       triggerHaptic(12);

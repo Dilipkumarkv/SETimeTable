@@ -724,15 +724,16 @@ export function getTodayTimeline(data, date) {
 
   const firstSlot = data.slots && data.slots.length > 0 ? data.slots[0] : null;
   const lastSlot = data.slots && data.slots.length > 0 ? data.slots[data.slots.length - 1] : null;
+  const nextSessionTime = firstSlot ? firstSlot.start : "09:45";
 
   // Build status summary text
   let statusSummary = "";
   if (!isWorkingDay) {
-    statusSummary = `College is closed today (${fullDayName}). Classes resume on ${nextFullDayName} at ${firstSlot ? firstSlot.start : "09:45"}.`;
+    statusSummary = `College is closed today (${fullDayName}). Classes resume on ${nextFullDayName} at ${nextSessionTime}.`;
   } else if (status === "before") {
-    statusSummary = `College has not started yet. First period begins at ${firstSlot ? firstSlot.start : "09:45"}.`;
+    statusSummary = `College has not started yet. First period begins at ${nextSessionTime}.`;
   } else if (status === "after") {
-    statusSummary = `Today's schedule is complete. Classes resume on ${nextFullDayName} at ${firstSlot ? firstSlot.start : "09:45"}.`;
+    statusSummary = `Today's schedule is complete. Classes resume on ${nextFullDayName} at ${nextSessionTime}.`;
   } else if (status === "break") {
     const breakSlot = currentSlot || nextSlot;
     const rem = breakSlot ? getTimeRemaining(breakSlot.end, timeStr) : null;
@@ -753,6 +754,7 @@ export function getTodayTimeline(data, date) {
       nextSlot: null,
       nextWorkingDay,
       nextFullDayName,
+      nextSessionTime,
       isWorkingDay: false,
       nowSection: null,
       timelineItems: []
@@ -770,6 +772,7 @@ export function getTodayTimeline(data, date) {
       nextSlot: null,
       nextWorkingDay,
       nextFullDayName,
+      nextSessionTime,
       isWorkingDay: true,
       nowSection: null,
       timelineItems: [
@@ -778,7 +781,7 @@ export function getTodayTimeline(data, date) {
           type: "complete",
           label: "Day Schedule Concluded",
           timeSpan: `${lastSlot ? lastSlot.end : "16:30"}`,
-          statusSummary: `College concluded at ${lastSlot ? lastSlot.end : "16:30"}. Next working day: ${nextFullDayName} at ${firstSlot ? firstSlot.start : "09:45"}.`,
+          statusSummary: `College concluded at ${lastSlot ? lastSlot.end : "16:30"}. Next working day: ${nextFullDayName} at ${nextSessionTime}.`,
           classes: []
         }
       ]
@@ -906,7 +909,7 @@ export function getTodayTimeline(data, date) {
     slot: null,
     label: "Day Complete",
     timeSpan: lastSlot ? lastSlot.end : "16:30",
-    statusSummary: `College concludes at ${lastSlot ? lastSlot.end : "16:30"}. Next working day: ${nextFullDayName} at ${firstSlot ? firstSlot.start : "09:45"}.`,
+    statusSummary: `College concludes at ${lastSlot ? lastSlot.end : "16:30"}. Next working day: ${nextFullDayName} at ${nextSessionTime}.`,
     classes: []
   });
 
@@ -920,6 +923,7 @@ export function getTodayTimeline(data, date) {
     nextSlot,
     nextWorkingDay,
     nextFullDayName,
+    nextSessionTime,
     isWorkingDay: true,
     nowSection: timelineItems.find(item => item.type === "now") || null,
     timelineItems

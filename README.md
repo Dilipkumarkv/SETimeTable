@@ -64,10 +64,30 @@ The application is deployed with a safe **Sample Data Invariant**:
 
 ---
 
-## Developer Tooling & Simulation
+## Developer Tooling & Simulation Mode
 
-- **Collapsible Dev Panel**: Accessible via the discreet `⚙️ Dev` header button. Allows simulating any weekday and time to verify campus states, lunch transitions, lab spans, and evening rollovers.
-- **Active Simulation Pill**: Shows the active simulated time with an instant 1-tap clock reset.
+For maximum production cleanliness, all developer controls and simulation panels are completely hidden from end users by default. The application runs strictly with the real campus clock in production mode.
+
+### How to Enable Developer Mode:
+
+1. **URL Query Parameter** (Instant 1-session access):
+   - Append `?dev=true` or `?sim=true` to the URL:
+     `https://<app-url>/?dev=true`
+   - To force production mode: `?dev=false`
+
+2. **Persistent LocalStorage Flag**:
+   - In the browser developer console:
+     ```javascript
+     window.TimetableApp.enableDevMode();  // enables & reloads
+     window.TimetableApp.disableDevMode(); // disables & reloads
+     // Or directly:
+     localStorage.setItem("devMode", "true");
+     ```
+
+### Developer Mode Features:
+- **Collapsible Dev Panel**: Accessible via the `⚙️` button in the header top right. Allows simulating any weekday and time to verify campus states, lunch transitions, lab spans, and evening rollovers.
+- **Quick Preset Chips**: One-tap simulation shortcuts for Monday Period 1 (09:45), Labs (11:35), Lunch Break (13:30), Period 5 (14:00), Evening (17:00), and Sunday.
+- **Active Simulation Pill**: Displays active simulated time with an instant 1-tap clock reset.
 
 ---
 

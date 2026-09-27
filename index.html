@@ -83,8 +83,8 @@
               </svg>
             </button>
           </div>
-          <!-- Settings / Dev Controls (Arrow position: Top row right-most corner) -->
-          <button id="toggle-sim-btn" class="btn-sim-toggle" type="button" aria-expanded="false" title="Settings / Developer Controls" aria-label="Settings / Developer Controls">⚙️</button>
+          <!-- Settings / Dev Controls (Shown only when in Dev Mode via ?dev=true or localStorage flag) -->
+          <button id="toggle-sim-btn" class="btn-sim-toggle" type="button" aria-expanded="false" title="Settings / Developer Controls" aria-label="Settings / Developer Controls" style="display: none;">⚙️</button>
         </div>
       </div>
 
@@ -133,8 +133,8 @@
       <button id="btn-quick-reset-sim" class="btn-quick-reset" type="button">Reset Clock</button>
     </div>
 
-    <!-- Collapsible Settings & Developer Panel (Hidden by Default) -->
-    <div id="sim-panel" class="sim-panel sim-panel-collapsible collapsed">
+    <!-- Collapsible Settings & Developer Panel (Hidden by Default in Production) -->
+    <div id="sim-panel" class="sim-panel sim-panel-collapsible collapsed" style="display: none;">
       <!-- Section 1: User & System Settings -->
       <div class="settings-prod-section">
         <div class="settings-prod-header">
