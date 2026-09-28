@@ -1,4 +1,4 @@
-// Phase 2: TODAY View — Principal's Live Timetable Assistant
+// Phase 2: TODAY View — Principal's Live Timetable Dashboard
 // Continuous Chronological Timeline: NOW -> NEXT -> BREAK -> LATER TODAY -> DAY COMPLETE
 
 import {

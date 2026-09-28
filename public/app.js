@@ -160,6 +160,10 @@ window.TimetableApp = {
     return { ...state.weekState };
   },
   searchAndFilterEntries,
+  getData() {
+    return state.data;
+  },
+  getCurrentEffectiveDate,
   setExploreState(newState) {
     state.exploreState = newState;
     renderFilterBar();
@@ -676,15 +680,18 @@ function init() {
   updateHeaderClock();
   renderCurrentTab();
 
-  // Clock tick interval (every 1 second update header live clock, re-render view if minute changes)
+  // Clock tick interval (every 1 second update header live clock, re-render view if minute changes or day crosses midnight)
   let lastMinute = -1;
+  let lastDayStr = "";
   setInterval(() => {
     updateHeaderClock();
     if (!state.isSimulating) {
       const effDate = getCurrentEffectiveDate();
       const currentMin = effDate.getMinutes();
-      if (currentMin !== lastMinute) {
+      const currentDayStr = effDate.toDateString();
+      if (currentMin !== lastMinute || currentDayStr !== lastDayStr) {
         lastMinute = currentMin;
+        lastDayStr = currentDayStr;
         renderCurrentTab();
       }
     }
@@ -721,16 +728,29 @@ function setupPWA() {
 
   // 2. In-App Install Prompt & Themed Window Modal
   let deferredPrompt = null;
+  const isAndroidApp = typeof document !== "undefined" && document.referrer && document.referrer.includes("android-app://");
   const isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
+    (typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches) ||
+    (typeof window !== "undefined" && window.navigator && window.navigator.standalone === true) ||
+    isAndroidApp;
 
-  const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isDesktop = !(/android|iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()));
+  const isIOS = typeof window !== "undefined" && /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isDesktop = typeof window !== "undefined" && !(/android|iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()));
 
-  // Hide install button completely if already installed and running in standalone window
+  // Hide install button if running in standalone window / Android WebAPK
   if (isStandalone) {
     if (installContainer) installContainer.style.display = "none";
+  }
+
+  // Check Android getInstalledRelatedApps API if available
+  if (typeof window !== "undefined" && window.navigator && "getInstalledRelatedApps" in window.navigator) {
+    try {
+      window.navigator.getInstalledRelatedApps().then((apps) => {
+        if (apps && apps.length > 0 && installContainer) {
+          installContainer.style.display = "none";
+        }
+      }).catch(() => {});
+    } catch {}
   }
 
   function showInstallModal() {
@@ -759,9 +779,12 @@ function setupPWA() {
   async function triggerNativePrompt() {
     if (deferredPrompt) {
       try {
-        deferredPrompt.prompt();
+        await deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
         if (choice && choice.outcome === "accepted") {
+          try {
+            localStorage.setItem("timetable_pwa_installed", "true");
+          } catch {}
           if (installContainer) installContainer.style.display = "none";
           hideInstallModal();
         }
@@ -828,6 +851,9 @@ function setupPWA() {
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
+    try {
+      localStorage.setItem("timetable_pwa_installed", "true");
+    } catch {}
     if (installContainer) installContainer.style.display = "none";
     hideInstallModal();
   });

@@ -1,6 +1,6 @@
 // Phase 6: Service Worker for Offline Timetable PWA
 // Versioned cache name: Bumping this version updates assets for all installed users
-const CACHE_NAME = "timetable-cache-v24";
+const CACHE_NAME = "timetable-cache-v25";
 
 // Explicit precache list of all application files using strictly relative paths
 const PRECACHE_ASSETS = [
@@ -18,11 +18,15 @@ const PRECACHE_ASSETS = [
   "./ui-next.js",
   "./ui-overview.js",
   "./manifest.webmanifest",
+  "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
   "./icons/apple-touch-icon.png",
-  "./icons/icon.svg"
+  "./icons/icon.svg",
+  "./pwa-192x192.png",
+  "./pwa-512x512.png",
+  "./pwa-maskable-512x512.png"
 ];
 
 // Install Event: Precaches every application asset and immediately activates

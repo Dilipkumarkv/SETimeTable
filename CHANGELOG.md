@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Registered `ui-week.js` in `sw.js` cache-v5.
   - Added Group N automated unit tests in `tests.js` verifying mobile day feed generation, lab consolidation, branch/faculty filtering, tab structure, and offline precaching (total: 100 tests, 0 failures).
 
-## [3.0.0-phase2] - Stage 3 — Phase 2: Principal Live Timetable Assistant & Continuous Timeline
+## [3.0.0-phase2] - Stage 3 — Phase 2: Principal Live Timetable Dashboard & Continuous Timeline
 ### Added
 - **Continuous Chronological Timeline (`ui-today.js`, `time.js`, `styles.css`)**:
   - Replaced the fragmented NOW / NEXT mental model with ONE continuous scrollable feed: `NOW` -> `NEXT` -> `BREAK` -> `LATER TODAY` -> `DAY COMPLETE`.

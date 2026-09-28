@@ -2217,7 +2217,7 @@ select:focus-visible,
 }
 
 /* ==========================================================================
-   TODAY View — Continuous Timeline & Principal's Live Assistant
+   TODAY View — Continuous Timeline & Principal's Live Dashboard
    ========================================================================== */
 
 .today-screen {
@@ -3290,23 +3290,210 @@ select:focus-visible,
   margin-left: 6px;
 }
 
-/* Grid Container */
+/* ==========================================================================
+   Excel-Style Spreadsheet Matrix Grid (Week Mode)
+   ========================================================================== */
+
 .week-grid-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
-.grid-actions-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.excel-matrix-wrapper {
+  background-color: var(--bg-surface);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
-.grid-title {
-  font-size: 0.95rem;
-  font-weight: 700;
+.excel-grid-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  min-width: 860px;
+  font-size: 0.82rem;
+  background-color: var(--bg-surface);
+}
+
+/* Excel Header Row (Top Columns) */
+.excel-header-row th {
+  background: var(--bg-muted);
+  border-right: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  padding: 8px 10px;
+  text-align: center;
   color: var(--text-primary);
+  font-weight: 700;
+  user-select: none;
+}
+
+.excel-header-row th:last-child {
+  border-right: none;
+}
+
+.excel-th-corner {
+  position: sticky;
+  left: 0;
+  top: 0;
+  z-index: 20;
+  background: var(--bg-muted) !important;
+  border-right: 2px solid var(--border-color) !important;
+  border-bottom: 2px solid var(--border-color) !important;
+  min-width: 90px;
+  text-align: left !important;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.excel-th-period {
+  min-width: 110px;
+  max-width: 160px;
+}
+
+.excel-period-number {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.excel-period-time {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+
+/* Excel Body Rows & Cells */
+.excel-body-row {
+  transition: background-color 0.1s ease;
+}
+
+.excel-body-row:hover .excel-cell,
+.excel-body-row:hover .excel-td-header {
+  background-color: #f8fafc !important;
+}
+
+.excel-row-alt .excel-cell {
+  background-color: #fcfdfe;
+}
+
+.excel-row-today .excel-td-header {
+  background-color: #fef3c7 !important;
+  border-right-color: #d97706 !important;
+}
+
+.excel-row-today .excel-cell {
+  background-color: #fffdf5;
+}
+
+/* Sticky Class / Day Column */
+.excel-td-header {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background-color: var(--bg-muted);
+  border-right: 2px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 8px 10px;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.excel-branch-text {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* Excel Grid Cells with Crisp Row & Column Separation */
+.excel-cell {
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 6px 8px;
+  vertical-align: top;
+  min-width: 110px;
+  max-width: 170px;
+  background-color: var(--bg-surface);
+}
+
+.excel-cell:last-child {
+  border-right: none;
+}
+
+.excel-cell-empty {
+  text-align: center;
+  vertical-align: middle;
+  background-color: #fafbfc;
+}
+
+.cell-dash {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.excel-cell-collision {
+  background-color: #fff7ed !important;
+  border-color: #ea580c !important;
+}
+
+/* Simple Clean Matching Text within Grid Cells */
+.excel-entry-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.25;
+  margin-bottom: 5px;
+}
+
+.excel-entry-text:last-child {
+  margin-bottom: 0;
+}
+
+.entry-sub {
+  font-size: 0.8rem;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.entry-theory strong {
+  color: #1e3a8a;
+}
+
+.entry-lab strong {
+  color: #065f46;
+}
+
+.entry-batch {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-left: 2px;
+}
+
+.entry-fac {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.entry-room {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.entry-class {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-left: 2px;
 }
 
 /* ==========================================================================
@@ -3540,9 +3727,184 @@ select:focus-visible,
   .feed-free-slot-card,
   .workload-stats-card,
   .explore-room-card,
+  .free-faculty-panel,
   .feed-cards-grid > div {
     animation: none !important;
     transform: none !important;
   }
+}
+
+/* ==========================================================================
+   Enchantments & Hardware Performance Optimization
+   ========================================================================== */
+
+/* Containment & 60fps Scroll Optimization */
+.timeline-stream,
+.week-day-feed-wrapper,
+.explore-results-feed {
+  contain: content;
+}
+
+/* Touch targets and tactile press feel */
+button, select, [role="button"], [role="tab"], .nav-tab-btn, .week-day-pill {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Free Faculty Now Quick Action & Panel */
+.explore-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-free-faculty-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  background-color: #e0f2fe;
+  border: 1px solid #bae6fd;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-height: 40px;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-free-faculty-toggle:active {
+  transform: scale(0.97);
+}
+
+.btn-free-faculty-toggle.active {
+  background-color: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.free-faculty-panel {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 8px;
+  animation: card-fade-in 0.15s ease-out both;
+}
+
+.free-panel-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.free-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.free-panel-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.free-panel-badge {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.free-panel-sub {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.free-panel-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.free-faculty-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.free-faculty-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.free-faculty-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.free-faculty-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.free-faculty-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.free-faculty-dept {
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-inspect-faculty {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 34px;
+}
+
+.btn-inspect-faculty:active {
+  transform: scale(0.96);
 }
 

@@ -145,7 +145,7 @@ export function renderWeekView(container, data, currentDate, weekState, onStateC
   container.innerHTML = html;
 
   // Attach Event Handlers
-  attachWeekEventListeners(container, weekState, onStateChange);
+  attachWeekEventListeners(container, weekState, onStateChange, data, selectedDay);
 }
 
 /**
@@ -399,18 +399,10 @@ function renderFeedLayout(data, selectedDay, scope, selectedClass, selectedLectu
 }
 
 /**
- * Grid Table Layout (Desktop / Tablet / Landscape Print)
+ * Grid Table Layout (Desktop / Tablet / Mobile Excel-Style Matrix with Clean Matching Text)
  */
 function renderGridLayout(data, selectedDay, scope, selectedClass, selectedLecturer, currentTodayDay, filters) {
-  let html = `
-    <div class="week-grid-container">
-      <div class="grid-actions-bar">
-        <span class="grid-title">Matrix Table View</span>
-        <button type="button" class="btn-print-schedule" title="Print this matrix">
-          🖨 Print Matrix
-        </button>
-      </div>
-  `;
+  let html = `<div class="week-grid-container excel-matrix-wrapper">`;
 
   if (scope === "all") {
     const rawGrid = getDayGrid(data, selectedDay);
@@ -419,28 +411,36 @@ function renderGridLayout(data, selectedDay, scope, selectedClass, selectedLectu
 
     html += `
       <div class="matrix-scroll-container">
-        <table class="matrix-table" aria-label="Day Schedule Grid for ${selectedDay}">
+        <table class="matrix-table excel-grid-table" aria-label="Schedule Grid for ${selectedDay}">
           <thead>
-            <tr>
-              <th class="matrix-th-sticky-corner">Class</th>
-              ${periodSlots.map(s => `<th>${s.label}<br/><small>${s.start}–${s.end}</small></th>`).join("")}
+            <tr class="excel-header-row">
+              <th class="matrix-th-sticky-corner excel-th-corner">Class</th>
+              ${periodSlots.map(s => `
+                <th class="excel-th-period">
+                  <div class="excel-period-number">P${s.label}</div>
+                  <div class="excel-period-time">${s.start}–${s.end}</div>
+                </th>
+              `).join("")}
             </tr>
           </thead>
           <tbody>
-            ${dayGrid.rows.map(row => `
-              <tr>
-                <td class="matrix-td-sticky-class">
-                  <span class="branch-pill branch-pill-${row.branch.toLowerCase()}">${row.branch}</span>
+            ${dayGrid.rows.map((row, rIdx) => `
+              <tr class="excel-body-row ${rIdx % 2 === 1 ? 'excel-row-alt' : ''}">
+                <td class="matrix-td-sticky-class excel-td-header">
                   <strong>${row.classId}</strong>
+                  <span class="excel-branch-text">${row.branch}</span>
                 </td>
                 ${row.cells.map(cell => `
-                  <td class="${cell.entries.length === 0 ? 'matrix-td-free' : ''}">
-                    ${cell.entries.length === 0 ? '<span class="cell-free-text">Free</span>' : ''}
+                  <td class="excel-cell ${cell.entries.length === 0 ? 'matrix-td-free excel-cell-empty' : ''}">
+                    ${cell.entries.length === 0 ? '<span class="cell-dash">—</span>' : ''}
                     ${cell.entries.map(e => `
-                      <div class="matrix-entry ${e.type === 'lab' ? 'matrix-entry-lab' : 'matrix-entry-theory'}">
-                        <strong>${e.subject}</strong>
-                        ${e.batch ? `<span class="cell-batch">(${e.batch})</span>` : ''}
-                        <div class="cell-lecturer">${e.lecturers ? e.lecturers.join(", ") : ""}</div>
+                      <div class="excel-entry-text ${e.type === 'lab' ? 'entry-lab' : 'entry-theory'}">
+                        <div class="entry-sub">
+                          <strong>${e.subject}</strong>
+                          ${e.batch ? `<span class="entry-batch">(B${e.batch})</span>` : ''}
+                        </div>
+                        ${e.lecturers && e.lecturers.length ? `<div class="entry-fac">${e.lecturers.join(", ")}</div>` : ''}
+                        ${e.room ? `<div class="entry-room">${e.room}</div>` : ''}
                       </div>
                     `).join("")}
                   </td>
@@ -457,28 +457,36 @@ function renderGridLayout(data, selectedDay, scope, selectedClass, selectedLectu
 
     html += `
       <div class="matrix-scroll-container">
-        <table class="matrix-table" aria-label="Weekly Grid for ${selectedClass}">
+        <table class="matrix-table excel-grid-table" aria-label="Weekly Grid for ${selectedClass}">
           <thead>
-            <tr>
-              <th class="matrix-th-sticky-corner">Day</th>
-              ${periodSlots.map(s => `<th>${s.label}<br/><small>${s.start}–${s.end}</small></th>`).join("")}
+            <tr class="excel-header-row">
+              <th class="matrix-th-sticky-corner excel-th-corner">Day</th>
+              ${periodSlots.map(s => `
+                <th class="excel-th-period">
+                  <div class="excel-period-number">P${s.label}</div>
+                  <div class="excel-period-time">${s.start}–${s.end}</div>
+                </th>
+              `).join("")}
             </tr>
           </thead>
           <tbody>
-            ${classWeek.days.map(dayRow => `
-              <tr class="${dayRow.day === currentTodayDay ? 'row-today' : ''}">
-                <td class="matrix-td-sticky-class">
+            ${classWeek.days.map((dayRow, rIdx) => `
+              <tr class="excel-body-row ${dayRow.day === currentTodayDay ? 'row-today excel-row-today' : (rIdx % 2 === 1 ? 'excel-row-alt' : '')}">
+                <td class="matrix-td-sticky-class excel-td-header">
                   <strong>${dayRow.day}</strong>
                   ${dayRow.day === currentTodayDay ? '<span class="day-today-tag">Today</span>' : ''}
                 </td>
                 ${dayRow.cells.map(cell => `
-                  <td class="${cell.entries.length === 0 ? 'matrix-td-free' : ''}">
-                    ${cell.entries.length === 0 ? '<span class="cell-free-text">Free</span>' : ''}
+                  <td class="excel-cell ${cell.entries.length === 0 ? 'matrix-td-free excel-cell-empty' : ''}">
+                    ${cell.entries.length === 0 ? '<span class="cell-dash">—</span>' : ''}
                     ${cell.entries.map(e => `
-                      <div class="matrix-entry ${e.type === 'lab' ? 'matrix-entry-lab' : 'matrix-entry-theory'}">
-                        <strong>${e.subject}</strong>
-                        ${e.batch ? `<span class="cell-batch">(${e.batch})</span>` : ''}
-                        <div class="cell-lecturer">${e.lecturers ? e.lecturers.join(", ") : ""}</div>
+                      <div class="excel-entry-text ${e.type === 'lab' ? 'entry-lab' : 'entry-theory'}">
+                        <div class="entry-sub">
+                          <strong>${e.subject}</strong>
+                          ${e.batch ? `<span class="entry-batch">(B${e.batch})</span>` : ''}
+                        </div>
+                        ${e.lecturers && e.lecturers.length ? `<div class="entry-fac">${e.lecturers.join(", ")}</div>` : ''}
+                        ${e.room ? `<div class="entry-room">${e.room}</div>` : ''}
                       </div>
                     `).join("")}
                   </td>
@@ -495,28 +503,35 @@ function renderGridLayout(data, selectedDay, scope, selectedClass, selectedLectu
 
     html += `
       <div class="matrix-scroll-container">
-        <table class="matrix-table" aria-label="Weekly Grid for ${lecturerWeek.lecturerName}">
+        <table class="matrix-table excel-grid-table" aria-label="Weekly Grid for ${lecturerWeek.lecturerName}">
           <thead>
-            <tr>
-              <th class="matrix-th-sticky-corner">Day</th>
-              ${periodSlots.map(s => `<th>${s.label}<br/><small>${s.start}–${s.end}</small></th>`).join("")}
+            <tr class="excel-header-row">
+              <th class="matrix-th-sticky-corner excel-th-corner">Day</th>
+              ${periodSlots.map(s => `
+                <th class="excel-th-period">
+                  <div class="excel-period-number">P${s.label}</div>
+                  <div class="excel-period-time">${s.start}–${s.end}</div>
+                </th>
+              `).join("")}
             </tr>
           </thead>
           <tbody>
-            ${lecturerWeek.days.map(dayRow => `
-              <tr class="${dayRow.day === currentTodayDay ? 'row-today' : ''}">
-                <td class="matrix-td-sticky-class">
+            ${lecturerWeek.days.map((dayRow, rIdx) => `
+              <tr class="excel-body-row ${dayRow.day === currentTodayDay ? 'row-today excel-row-today' : (rIdx % 2 === 1 ? 'excel-row-alt' : '')}">
+                <td class="matrix-td-sticky-class excel-td-header">
                   <strong>${dayRow.day}</strong>
                   ${dayRow.day === currentTodayDay ? '<span class="day-today-tag">Today</span>' : ''}
                 </td>
                 ${dayRow.cells.map(cell => `
-                  <td class="${cell.hasParallelCollision ? 'matrix-td-collision' : ''}">
-                    ${cell.entries.length === 0 ? '<span class="cell-free-text">—</span>' : ''}
+                  <td class="excel-cell ${cell.hasParallelCollision ? 'matrix-td-collision excel-cell-collision' : (cell.entries.length === 0 ? 'matrix-td-free excel-cell-empty' : '')}">
+                    ${cell.entries.length === 0 ? '<span class="cell-dash">—</span>' : ''}
                     ${cell.entries.map(e => `
-                      <div class="matrix-entry ${e.type === 'lab' ? 'matrix-entry-lab' : 'matrix-entry-theory'}">
-                        <strong>${e.subject}</strong>
-                        <span class="cell-class-badge">${e.classId}</span>
-                        ${e.batch ? `<span class="cell-batch">(${e.batch})</span>` : ''}
+                      <div class="excel-entry-text ${e.type === 'lab' ? 'entry-lab' : 'entry-theory'}">
+                        <div class="entry-sub">
+                          <strong>${e.subject}</strong>
+                          <span class="entry-class">(${e.classId}${e.batch ? ` - B${e.batch}` : ''})</span>
+                        </div>
+                        ${e.room ? `<div class="entry-room">${e.room}</div>` : ''}
                       </div>
                     `).join("")}
                   </td>
@@ -536,7 +551,10 @@ function renderGridLayout(data, selectedDay, scope, selectedClass, selectedLectu
 /**
  * Event Listeners for Week Screen
  */
-function attachWeekEventListeners(container, weekState, onStateChange) {
+function attachWeekEventListeners(container, weekState, onStateChange, data, selectedDay) {
+  const safeDays = (data && data.days) || window.TimetableApp?.getData?.()?.days || ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  const currentSelectedDay = selectedDay || weekState?.day || safeDays[0];
+
   // Scope buttons
   const scopeBtns = container.querySelectorAll(".week-scope-btn");
   scopeBtns.forEach(btn => {
@@ -594,11 +612,49 @@ function attachWeekEventListeners(container, weekState, onStateChange) {
     });
   }
 
-  // Print button
-  const printBtn = container.querySelector(".btn-print-schedule");
-  if (printBtn) {
-    printBtn.addEventListener("click", () => {
-      window.print();
-    });
+  // Mobile Horizontal Touch Swipe Handler for Seamless Day Switching
+  // ONLY enabled in Feed layout. Grid matrix mode requires free horizontal scrolling across periods without day jumping!
+  const currentLayout = weekState?.layout || "feed";
+  if (currentLayout !== "grid") {
+    const swipeTarget = container.querySelector(".week-day-feed-wrapper");
+    if (swipeTarget) {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchEndX = 0;
+      let touchEndY = 0;
+
+      swipeTarget.addEventListener("touchstart", (e) => {
+        if (e.touches && e.touches.length === 1) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      swipeTarget.addEventListener("touchend", (e) => {
+        if (e.changedTouches && e.changedTouches.length === 1) {
+          touchEndX = e.changedTouches[0].clientX;
+          touchEndY = e.changedTouches[0].clientY;
+          const diffX = touchEndX - touchStartX;
+          const diffY = touchEndY - touchStartY;
+
+          // Ensure clear horizontal swipe intent (min 45px swipe and 1.5x greater than vertical scroll)
+          if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+            const days = safeDays;
+            const curIdx = days.indexOf(currentSelectedDay);
+            if (curIdx !== -1) {
+              if (diffX < 0 && curIdx < days.length - 1) {
+                // Swiped Left -> Advance to Next Day
+                window.TimetableApp?.triggerHaptic?.(12);
+                onStateChange({ ...weekState, day: days[curIdx + 1] });
+              } else if (diffX > 0 && curIdx > 0) {
+                // Swiped Right -> Go to Previous Day
+                window.TimetableApp?.triggerHaptic?.(12);
+                onStateChange({ ...weekState, day: days[curIdx - 1] });
+              }
+            }
+          }
+        }
+      }, { passive: true });
+    }
   }
 }

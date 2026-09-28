@@ -5586,11 +5586,25 @@ export async function saveTimetableData(timetableData = TIMETABLE) {
     console.warn("IndexedDB offline save warning:", err);
   }
 
-  // 2. Secondary Store: LocalStorage backup
+  // 2. Secondary Store: LocalStorage backup with quota eviction guard
   try {
     if (typeof window !== "undefined" && window.localStorage) {
-      window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(timetableData));
-      savedLocalStorage = true;
+      try {
+        window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(timetableData));
+        savedLocalStorage = true;
+      } catch (quotaErr) {
+        console.warn("localStorage quota or private browsing restriction:", quotaErr);
+        try {
+          const keys = Object.keys(window.localStorage);
+          for (const k of keys) {
+            if (k.startsWith("timetable_temp_") || k === "timetable_search_cache") {
+              window.localStorage.removeItem(k);
+            }
+          }
+          window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(timetableData));
+          savedLocalStorage = true;
+        } catch {}
+      }
     }
   } catch (err) {
     console.warn("localStorage offline backup warning:", err);
