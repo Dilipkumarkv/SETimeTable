@@ -109,6 +109,41 @@ npm run build
 
 ---
 
+## Netlify Deployment Guide
+
+The repository is configured for automatic, zero-config deployment to **Netlify**:
+
+### 1. Continuous Deployment via Git (Recommended)
+1. Push this repository to GitHub or GitLab.
+2. In the [Netlify Dashboard](https://app.netlify.com/):
+   - Click **Add new site** $\to$ **Import an existing project**.
+   - Select your repository.
+3. Netlify will automatically detect configuration from `netlify.toml`:
+   - **Build command**: `npm run build`
+   - **Publish directory**: `dist`
+   - **Node version**: `22` (via `.nvmrc` and `netlify.toml`)
+4. Click **Deploy site**.
+
+### 2. Manual CLI Deployment
+```bash
+# Install Netlify CLI (if not already installed)
+npm install -g netlify-cli
+
+# Build the production bundle
+npm run build
+
+# Deploy directly to production
+netlify deploy --prod --dir=dist
+```
+
+### 3. Netlify-Specific Features Configured
+- **SPA Rewrites**: Single-page application deep linking enabled (`/*` $\to$ `/index.html 200` via `_redirects` & `netlify.toml`).
+- **PWA Service Worker**: Strict no-cache headers configured for `/sw.js` and `/manifest.webmanifest` to ensure instantaneous updates across client devices.
+- **Static Asset Caching**: Hashed bundles under `/assets/*` cached with immutable max-age headers for optimal performance.
+- **Security Headers**: HSTS, `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, and Referrer Policy configured out-of-the-box.
+
+---
+
 ## Documentation Links
 
 - **[`DATA_HANDOFF.md`](./DATA_HANDOFF.md)** — Production data replacement guide for HODs and administrators.

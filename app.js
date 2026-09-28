@@ -1,5 +1,11 @@
 // Stage 2: Application Orchestrator, Shell Wiring & Filters
-import { TIMETABLE } from "./data.js";
+import {
+  TIMETABLE,
+  timetableStorage,
+  saveTimetableData,
+  getTimetableData,
+  clearTimetableData
+} from "./data.js";
 import { validateTimetable } from "./validate.js";
 import {
   getSlotState,
@@ -199,7 +205,11 @@ window.TimetableApp = {
       localStorage.removeItem("devMode");
     } catch (e) {}
     if (typeof window !== "undefined") window.location.reload();
-  }
+  },
+  storage: timetableStorage,
+  saveTimetableData,
+  getTimetableData,
+  clearTimetableData
 };
 
 /**
@@ -393,7 +403,8 @@ function renderCurrentTab() {
       (newExploreState) => {
         state.exploreState = newExploreState;
         renderCurrentTab();
-      }
+      },
+      state.filters
     );
   } else if (state.activeTab === "next") {
     renderNextView(mainContent, state.data, effDate, state.filters);
@@ -652,6 +663,11 @@ function init() {
 
   // Step 4: Setup PWA capabilities (Service Worker, In-App Install Prompt, Offline status)
   setupPWA();
+
+  // Step 5: Cache master timetable into IndexedDB / localStorage for offline availability
+  if (typeof window !== "undefined") {
+    timetableStorage.save(state.data).catch(() => {});
+  }
 
   // Default to real live device clock (real-time mode)
   state.isSimulating = false;

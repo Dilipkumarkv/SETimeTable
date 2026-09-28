@@ -5513,3 +5513,182 @@ export const TIMETABLE = {
     }
   ]
 };
+
+/**
+ * =============================================================================
+ * IndexedDB & localStorage Offline Persistence Service
+ * =============================================================================
+ * Stores and retrieves the master timetable data for offline availability.
+ * Implements IndexedDB with automatic localStorage fallback and graceful degradation.
+ */
+
+export const DB_NAME = "SET_Timetable_Offline_DB";
+export const DB_VERSION = 1;
+export const STORE_NAME = "timetable_master";
+export const LOCAL_STORAGE_KEY = "set_timetable_master_cache";
+
+/**
+ * Open or upgrade the IndexedDB database.
+ * Returns null if IndexedDB is unavailable in the execution environment.
+ * @returns {Promise<IDBDatabase|null>}
+ */
+function openIndexedDB() {
+  if (typeof window === "undefined" || !window.indexedDB) {
+    return Promise.resolve(null);
+  }
+  return new Promise((resolve) => {
+    try {
+      const request = window.indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      };
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+      request.onerror = () => {
+        resolve(null);
+      };
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Saves master timetable data into IndexedDB with localStorage fallback for offline availability.
+ * @param {object} timetableData - The complete timetable object to store (defaults to TIMETABLE)
+ * @returns {Promise<boolean>} Whether the timetable data was stored successfully
+ */
+export async function saveTimetableData(timetableData = TIMETABLE) {
+  let savedIndexedDb = false;
+  let savedLocalStorage = false;
+
+  // 1. Primary Store: IndexedDB
+  try {
+    const db = await openIndexedDB();
+    if (db) {
+      savedIndexedDb = await new Promise((resolve) => {
+        try {
+          const tx = db.transaction(STORE_NAME, "readwrite");
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.put(timetableData, "master");
+          req.onsuccess = () => resolve(true);
+          req.onerror = () => resolve(false);
+        } catch {
+          resolve(false);
+        }
+      });
+    }
+  } catch (err) {
+    console.warn("IndexedDB offline save warning:", err);
+  }
+
+  // 2. Secondary Store: LocalStorage backup
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(timetableData));
+      savedLocalStorage = true;
+    }
+  } catch (err) {
+    console.warn("localStorage offline backup warning:", err);
+  }
+
+  return savedIndexedDb || savedLocalStorage;
+}
+
+/**
+ * Retrieves master timetable data from IndexedDB or localStorage.
+ * Falls back to the bundled master TIMETABLE if no stored copy exists or on error.
+ * @returns {Promise<object>} Stored or default timetable data
+ */
+export async function getTimetableData() {
+  // 1. Attempt reading from IndexedDB
+  try {
+    const db = await openIndexedDB();
+    if (db) {
+      const data = await new Promise((resolve) => {
+        try {
+          const tx = db.transaction(STORE_NAME, "readonly");
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.get("master");
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        } catch {
+          resolve(null);
+        }
+      });
+      if (data && data.slots && data.classes && data.entries) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("IndexedDB offline read warning, falling back to localStorage:", err);
+  }
+
+  // 2. Attempt reading from localStorage fallback
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const raw = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.slots && parsed.classes && parsed.entries) {
+          return parsed;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("localStorage offline read warning:", err);
+  }
+
+  // 3. Fallback to bundled master timetable
+  return TIMETABLE;
+}
+
+/**
+ * Clears stored master timetable data from both IndexedDB and localStorage.
+ * @returns {Promise<boolean>}
+ */
+export async function clearTimetableData() {
+  try {
+    const db = await openIndexedDB();
+    if (db) {
+      await new Promise((resolve) => {
+        try {
+          const tx = db.transaction(STORE_NAME, "readwrite");
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.delete("master");
+          req.onsuccess = () => resolve(true);
+          req.onerror = () => resolve(false);
+        } catch {
+          resolve(false);
+        }
+      });
+    }
+  } catch {}
+
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+  } catch {}
+
+  return true;
+}
+
+/**
+ * Master timetable offline storage service.
+ */
+export const timetableStorage = {
+  save: saveTimetableData,
+  get: getTimetableData,
+  clear: clearTimetableData,
+  isAvailable() {
+    return typeof window !== "undefined" && (Boolean(window.indexedDB) || Boolean(window.localStorage));
+  }
+};
+
+export default timetableStorage;
+

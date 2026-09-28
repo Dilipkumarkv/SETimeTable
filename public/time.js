@@ -1137,6 +1137,17 @@ export function searchAndFilterEntries(data, criteria = {}) {
       if (entry.classId.toLowerCase().includes(query)) matchesQuery = true;
       if (entry.day.toLowerCase().includes(query)) matchesQuery = true;
       if (classInfo.branch.toLowerCase().includes(query)) matchesQuery = true;
+      if (entry.room && entry.room.toLowerCase().includes(query)) matchesQuery = true;
+      const branchFullNames = {
+        "CE": "civil",
+        "CS": "computer science",
+        "EC": "electronics",
+        "EE": "electrical",
+        "ME": "mechanical"
+      };
+      if (branchFullNames[classInfo.branch] && branchFullNames[classInfo.branch].includes(query)) {
+        matchesQuery = true;
+      }
 
       // Check lecturer name or initials
       if (entry.lecturers) {
