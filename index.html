@@ -31,7 +31,7 @@
         if ('caches' in window) {
           caches.keys().then(function(names) {
             names.forEach(function(name) {
-              if (name !== 'timetable-cache-v25') {
+              if (name !== 'timetable-cache-v26') {
                 caches.delete(name);
               }
             });
@@ -266,7 +266,7 @@
         </div>
 
         <div id="install-guide-ios" class="install-platform-guide" style="display: none;">
-          <div class="platform-guide-title">How to install on iPhone & iPad:</div>
+          <div class="platform-guide-title">How to install on iPhone & iPad (Safari):</div>
           <ol class="platform-guide-steps">
             <li>Tap the <strong>Share</strong> button <svg class="inline-svg-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> in Safari bottom bar.</li>
             <li>Scroll down and select <strong>Add to Home Screen</strong>.</li>
@@ -274,19 +274,49 @@
           </ol>
         </div>
 
-        <div id="install-guide-desktop" class="install-platform-guide" style="display: none;">
-          <div class="platform-guide-title">Desktop / Chrome / Edge:</div>
-          <p class="platform-guide-text">Click <strong>Install App</strong> below or click the install icon in your browser address bar.</p>
+        <div id="install-guide-android" class="install-platform-guide" style="display: none;">
+          <div class="platform-guide-title">How to install on Android (Chrome / Brave / Edge):</div>
+          <ol class="platform-guide-steps">
+            <li>Tap the browser menu (<strong>⋮</strong>) in the top-right corner.</li>
+            <li>Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li>
+            <li>Tap <strong>"Install"</strong> to add the app icon directly to your phone.</li>
+          </ol>
         </div>
 
-        <div class="modal-actions-row">
-          <button id="modal-native-install-btn" class="modal-primary-btn" type="button">
+        <div id="install-guide-desktop" class="install-platform-guide" style="display: none;">
+          <div class="platform-guide-title">Desktop / Chrome / Edge:</div>
+          <p class="platform-guide-text">Click <strong>Add to Home Screen</strong> below, or click the install icon (⊕) in your browser address bar.</p>
+        </div>
+
+        <div id="install-guide-iframe" class="install-platform-guide" style="display: none;">
+          <div class="platform-guide-title">Embedded Preview Notice:</div>
+          <p class="platform-guide-text">Direct app installation is restricted inside preview iframes. Open directly in your browser:</p>
+          <a id="btn-open-tab-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-open-tab-link">Open in Full Browser Tab ↗</a>
+        </div>
+
+        <!-- Direct Standalone Offline App File Download -->
+        <div class="modal-download-box">
+          <div class="download-box-text">
+            <strong>Prefer a direct file download?</strong>
+            <span>Download the standalone offline app file to keep permanently on your phone or PC. Opens in any browser without installation or internet.</span>
+          </div>
+          <button id="modal-download-offline-file-btn" class="modal-download-btn" type="button">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            <span id="modal-install-text">Install App</span>
+            <span>Download Offline App (.html)</span>
+          </button>
+        </div>
+
+        <div class="modal-actions-row">
+          <button id="modal-native-install-btn" class="modal-primary-btn" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1" />
+              <path d="M12 4v12m-4-4 4 4 4-4" />
+            </svg>
+            <span id="modal-install-text">Add to Home Screen</span>
           </button>
           <button id="pwa-modal-close" class="modal-secondary-btn" type="button">Close</button>
         </div>

@@ -1,11 +1,12 @@
 // Phase 6: Service Worker for Offline Timetable PWA
 // Versioned cache name: Bumping this version updates assets for all installed users
-const CACHE_NAME = "timetable-cache-v25";
+const CACHE_NAME = "timetable-cache-v26";
 
 // Explicit precache list of all application files using strictly relative paths
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
+  "./SET_Polytechnic_Timetable_App.html",
   "./styles.css",
   "./app.js",
   "./data.js",

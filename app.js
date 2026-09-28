@@ -711,7 +711,11 @@ function setupPWA() {
   const pwaModalClose = document.getElementById("pwa-modal-close") || document.getElementById("ios-modal-close");
   const modalNativeInstallBtn = document.getElementById("modal-native-install-btn");
   const installGuideIos = document.getElementById("install-guide-ios");
+  const installGuideAndroid = document.getElementById("install-guide-android");
   const installGuideDesktop = document.getElementById("install-guide-desktop");
+  const installGuideIframe = document.getElementById("install-guide-iframe");
+  const btnOpenTabLink = document.getElementById("btn-open-tab-link");
+  const modalDownloadOfflineBtn = document.getElementById("modal-download-offline-file-btn");
 
   // 1. Online / Offline Status Monitoring
   function updateOnlineStatus() {
@@ -753,21 +757,38 @@ function setupPWA() {
     } catch {}
   }
 
+  const isInIframe = typeof window !== "undefined" && window.self !== window.top;
+  if (btnOpenTabLink) {
+    btnOpenTabLink.href = window.location.href;
+  }
+
   function showInstallModal() {
     if (!pwaModal) return;
+
+    if (btnOpenTabLink) {
+      btnOpenTabLink.href = window.location.href;
+    }
+
+    // Hide all guides first
+    if (installGuideIos) installGuideIos.style.display = "none";
+    if (installGuideAndroid) installGuideAndroid.style.display = "none";
+    if (installGuideDesktop) installGuideDesktop.style.display = "none";
+    if (installGuideIframe) installGuideIframe.style.display = "none";
+
+    if (isInIframe) {
+      if (installGuideIframe) installGuideIframe.style.display = "block";
+    }
+
     if (isIOS) {
       if (installGuideIos) installGuideIos.style.display = "block";
-      if (installGuideDesktop) installGuideDesktop.style.display = "none";
       if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = "none";
     } else if (isDesktop) {
-      if (installGuideIos) installGuideIos.style.display = "none";
       if (installGuideDesktop) installGuideDesktop.style.display = "block";
       if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = deferredPrompt ? "inline-flex" : "none";
     } else {
       // Android / Other mobile
-      if (installGuideIos) installGuideIos.style.display = "none";
-      if (installGuideDesktop) installGuideDesktop.style.display = "none";
-      if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = "inline-flex";
+      if (installGuideAndroid) installGuideAndroid.style.display = "block";
+      if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = deferredPrompt ? "inline-flex" : "none";
     }
     pwaModal.style.display = "flex";
   }
@@ -795,6 +816,33 @@ function setupPWA() {
     } else {
       showInstallModal();
     }
+  }
+
+  // Standalone Offline App File Download Handler
+  if (modalDownloadOfflineBtn) {
+    modalDownloadOfflineBtn.addEventListener("click", () => {
+      triggerHaptic(14);
+      try {
+        const a = document.createElement("a");
+        a.href = "./SET_Polytechnic_Timetable_App.html";
+        a.download = "SET_Polytechnic_Timetable_App.html";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        const span = modalDownloadOfflineBtn.querySelector("span");
+        if (span) {
+          const original = span.textContent;
+          span.textContent = "✓ File Downloaded!";
+          setTimeout(() => {
+            span.textContent = original;
+          }, 3500);
+        }
+      } catch (err) {
+        console.warn("Download fallback:", err);
+        window.location.href = "./SET_Polytechnic_Timetable_App.html";
+      }
+    });
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {

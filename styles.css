@@ -2016,6 +2016,76 @@ select:focus-visible,
   line-height: 1.45;
 }
 
+.btn-open-tab-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 12px;
+  background-color: var(--accent);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.btn-open-tab-link:hover {
+  opacity: 0.9;
+}
+
+/* Standalone Offline Download Box */
+.modal-download-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fdfaf6;
+  border: 1px dashed var(--accent);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.download-box-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.download-box-text strong {
+  font-size: 0.86rem;
+  color: var(--text-primary);
+  font-weight: 750;
+}
+
+.download-box-text span {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.modal-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  background-color: #ffffff;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-download-btn:hover {
+  background-color: #faf2ea;
+  transform: translateY(-1px);
+}
+
 .modal-actions-row {
   display: flex;
   gap: 10px;
