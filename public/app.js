@@ -808,8 +808,10 @@ function setupPWA() {
   async function triggerNativePrompt() {
     if (deferredPrompt) {
       try {
+        console.log("[PWA] Invoking deferredPrompt.prompt()");
         await deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
+        console.log(`[PWA] User choice outcome: ${choice ? choice.outcome : "unknown"}`);
         if (choice && choice.outcome === "accepted") {
           try {
             localStorage.setItem("timetable_pwa_installed", "true");
@@ -818,17 +820,13 @@ function setupPWA() {
           hideInstallModal();
         }
       } catch (err) {
-        console.warn("PWA prompt error:", err);
+        console.warn("[PWA] Prompt error:", err);
       }
       deferredPrompt = null;
     } else {
-      // If native deferred prompt is not directly available:
-      if (isInIframe && btnOpenTabLink) {
-        btnOpenTabLink.click();
-      } else {
-        // Trigger offline file download and highlight browser menu instructions
-        downloadOfflineAppFile();
-      }
+      // Deferred prompt is NOT available. Do not pretend native install was triggered.
+      console.log("[PWA] Native prompt not available, showing guided install modal");
+      showInstallModal();
     }
   }
 
@@ -894,11 +892,14 @@ function setupPWA() {
     // Prevent default browser banner and save the prompt event
     e.preventDefault();
     deferredPrompt = e;
+    console.log("[PWA] beforeinstallprompt fired");
     if (!isStandalone && installContainer) {
       installContainer.style.display = "flex";
     }
     if (modalNativeInstallBtn) {
       modalNativeInstallBtn.style.display = "inline-flex";
+      const txt = modalNativeInstallBtn.querySelector("#modal-install-text") || modalNativeInstallBtn;
+      if (txt) txt.textContent = "Install App (1-Click)";
     }
   });
 
@@ -1004,6 +1005,63 @@ function setupPWA() {
       });
     }
   }
+
+  // Phase 15: PWA Installability Diagnostics Function (factual, observable)
+  window.__pwaDiagnostics = async function () {
+    const isSecure = window.isSecureContext === true;
+    let manifestFetch = "FAIL";
+    let manifestValid = "FAIL";
+    let manifestData = null;
+    try {
+      const mRes = await fetch("/manifest.webmanifest");
+      if (mRes.ok) {
+        manifestFetch = "PASS";
+        manifestData = await mRes.json();
+        if (manifestData && manifestData.name && manifestData.icons && manifestData.start_url) {
+          manifestValid = "PASS";
+        }
+      }
+    } catch (e) {
+      manifestFetch = "FAIL";
+    }
+
+    const swSupported = "serviceWorker" in navigator;
+    let swRegistered = "FAIL";
+    let swActive = "FAIL";
+    let swScope = "N/A";
+    if (swSupported) {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          swRegistered = "PASS";
+          swScope = reg.scope;
+          if (reg.active) swActive = "PASS";
+        }
+      } catch (e) {}
+    }
+
+    const pageControlled = navigator.serviceWorker && navigator.serviceWorker.controller ? "PASS" : "FAIL";
+    const isStandaloneMode = window.matchMedia("(display-mode: standalone)").matches || (window.navigator && window.navigator.standalone === true);
+
+    const report = {
+      "Secure Context": isSecure ? "PASS" : "FAIL",
+      "Current URL": window.location.href,
+      "Manifest URL": "/manifest.webmanifest",
+      "Manifest Fetch": manifestFetch,
+      "Manifest Valid": manifestValid,
+      "Service Worker Supported": swSupported ? "PASS" : "FAIL",
+      "Service Worker Registered": swRegistered,
+      "Service Worker Active": swActive,
+      "Service Worker Scope": swScope,
+      "Page Controlled": pageControlled,
+      "Display Mode": isStandaloneMode ? "standalone" : "browser",
+      "Standalone": isStandaloneMode ? "PASS" : "FAIL",
+      "beforeinstallprompt": deferredPrompt ? "FIRED" : "NOT FIRED"
+    };
+
+    console.table(report);
+    return report;
+  };
 }
 
 // Bootstrap on DOMContentLoaded or immediately if already loaded

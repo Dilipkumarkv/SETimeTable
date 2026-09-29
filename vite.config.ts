@@ -10,6 +10,16 @@ export default defineConfig(() => {
       react(),
       tailwindcss(),
       {
+        name: 'canonical-pwa-manifest',
+        transformIndexHtml(html) {
+          return html
+            // Ensure production index.html points cleanly to root /manifest.webmanifest
+            .replace(/<link[^>]*rel="manifest"[^>]*>/i, '<link rel="manifest" href="/manifest.webmanifest" />')
+            // Strip any competing/duplicate manifest tags
+            .replace(/<link[^>]*rel="alternate"[^>]*manifest[^>]*\/?>\s*/i, '');
+        }
+      },
+      {
         name: 'serve-raw-static-assets',
         configureServer(server) {
           server.middlewares.use((req, res, next) => {

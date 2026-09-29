@@ -8,7 +8,6 @@
     
     <!-- PWA Web App Manifest & Metadata -->
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="alternate" type="application/manifest+json" href="./manifest.json" />
     <meta name="theme-color" content="#f6f1eb" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -32,7 +31,7 @@
         if ('caches' in window) {
           caches.keys().then(function(names) {
             names.forEach(function(name) {
-              if (name !== 'timetable-cache-v27') {
+              if (name !== 'timetable-cache-v28') {
                 caches.delete(name);
               }
             });

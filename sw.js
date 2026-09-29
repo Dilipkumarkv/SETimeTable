@@ -1,65 +1,46 @@
 // Phase 6: Service Worker for Offline Timetable PWA
 // Versioned cache name: Bumping this version updates assets for all installed users
-const CACHE_NAME = "timetable-cache-v27";
+const CACHE_NAME = "timetable-cache-v28";
 
-// Explicit precache list of all application files using both absolute and relative paths
+// Deterministic production asset list (strictly deduplicated)
 const PRECACHE_ASSETS = [
-  "/",
   "./",
-  "/index.html",
   "./index.html",
-  "/SET_Polytechnic_Timetable_App.html",
-  "./SET_Polytechnic_Timetable_App.html",
-  "/styles.css",
   "./styles.css",
-  "/app.js",
   "./app.js",
-  "/data.js",
   "./data.js",
-  "/time.js",
   "./time.js",
-  "/validate.js",
   "./validate.js",
-  "/ui-today.js",
-  "./ui-today.js",
-  "/ui-week.js",
-  "./ui-week.js",
-  "/ui-explore.js",
-  "./ui-explore.js",
-  "/ui-now.js",
   "./ui-now.js",
-  "/ui-next.js",
   "./ui-next.js",
-  "/ui-overview.js",
   "./ui-overview.js",
-  "/manifest.webmanifest",
+  "./ui-today.js",
+  "./ui-week.js",
+  "./ui-explore.js",
   "./manifest.webmanifest",
-  "/manifest.json",
-  "./manifest.json",
-  "/icons/icon-192.png",
-  "./icons/icon-192.png",
-  "/icons/icon-512.png",
-  "./icons/icon-512.png",
-  "/icons/icon-maskable-512.png",
-  "./icons/icon-maskable-512.png",
-  "/icons/apple-touch-icon.png",
-  "./icons/apple-touch-icon.png",
-  "/icons/icon.svg",
-  "./icons/icon.svg",
-  "/pwa-192x192.png",
   "./pwa-192x192.png",
-  "/pwa-512x512.png",
   "./pwa-512x512.png",
-  "/pwa-maskable-512x512.png",
-  "./pwa-maskable-512x512.png"
+  "./pwa-maskable-512x512.png",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/icon-maskable-512.png",
+  "./icons/apple-touch-icon.png",
+  "./icons/icon.svg",
+  "./SET_Polytechnic_Timetable_App.html"
 ];
 
-// Install Event: Precaches every application asset and immediately activates
+// Install Event: Precaches every application asset gracefully and immediately activates
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await Promise.all(
+        PRECACHE_ASSETS.map((asset) => {
+          return cache.add(asset).catch((err) => {
+            console.warn(`[SW] Precache skipped for ${asset}:`, err);
+          });
+        })
+      );
     })
   );
 });
@@ -75,15 +56,6 @@ self.addEventListener("activate", (event) => {
       );
     }).then(() => {
       return self.clients.claim();
-    }).then(() => {
-      // Force any active browser tabs to refresh to the latest network shell immediately
-      return self.clients.matchAll({ type: "window" }).then((clients) => {
-        clients.forEach((client) => {
-          if (client.navigate) {
-            client.navigate(client.url);
-          }
-        });
-      });
     })
   );
 });
