@@ -784,11 +784,19 @@ function setupPWA() {
       if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = "none";
     } else if (isDesktop) {
       if (installGuideDesktop) installGuideDesktop.style.display = "block";
-      if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = deferredPrompt ? "inline-flex" : "none";
+      if (modalNativeInstallBtn) {
+        modalNativeInstallBtn.style.display = "inline-flex";
+        const txt = modalNativeInstallBtn.querySelector("#modal-install-text") || modalNativeInstallBtn;
+        if (txt) txt.textContent = deferredPrompt ? "Install App (1-Click)" : "Add to Home Screen";
+      }
     } else {
       // Android / Other mobile
       if (installGuideAndroid) installGuideAndroid.style.display = "block";
-      if (modalNativeInstallBtn) modalNativeInstallBtn.style.display = deferredPrompt ? "inline-flex" : "none";
+      if (modalNativeInstallBtn) {
+        modalNativeInstallBtn.style.display = "inline-flex";
+        const txt = modalNativeInstallBtn.querySelector("#modal-install-text") || modalNativeInstallBtn;
+        if (txt) txt.textContent = deferredPrompt ? "Install App (1-Click)" : "Add to Home Screen";
+      }
     }
     pwaModal.style.display = "flex";
   }
@@ -814,34 +822,71 @@ function setupPWA() {
       }
       deferredPrompt = null;
     } else {
-      showInstallModal();
+      // If native deferred prompt is not directly available:
+      if (isInIframe && btnOpenTabLink) {
+        btnOpenTabLink.click();
+      } else {
+        // Trigger offline file download and highlight browser menu instructions
+        downloadOfflineAppFile();
+      }
     }
   }
 
-  // Standalone Offline App File Download Handler
+  // Universal Standalone Offline App File Download Handler (Blob-Based)
+  async function downloadOfflineAppFile() {
+    triggerHaptic(14);
+    const span = modalDownloadOfflineBtn ? modalDownloadOfflineBtn.querySelector("span") : null;
+    if (span) span.textContent = "⏳ Preparing Download...";
+
+    try {
+      let htmlContent = "";
+      try {
+        const response = await fetch("/SET_Polytechnic_Timetable_App.html", { cache: "no-store" });
+        if (response.ok) {
+          htmlContent = await response.text();
+        }
+      } catch (e) {
+        console.warn("Fetch failed, will use current DOM:", e);
+      }
+
+      if (!htmlContent || htmlContent.length < 5000) {
+        htmlContent = "<!doctype html>\n" + document.documentElement.outerHTML;
+      }
+
+      // Using application/octet-stream forces browser to save file to disk on Android & Windows
+      const blob = new Blob([htmlContent], { type: "application/octet-stream" });
+      const blobUrl = URL.createObjectURL(blob);
+
+      const downloadLink = document.createElement("a");
+      downloadLink.style.display = "none";
+      downloadLink.href = blobUrl;
+      downloadLink.setAttribute("download", "SET_Polytechnic_Timetable_App.html");
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+
+      setTimeout(() => {
+        if (downloadLink.parentNode) {
+          downloadLink.parentNode.removeChild(downloadLink);
+        }
+        URL.revokeObjectURL(blobUrl);
+      }, 2000);
+
+      if (span) {
+        span.textContent = "✓ File Downloaded!";
+        setTimeout(() => {
+          span.textContent = "Download Offline App (.html)";
+        }, 3500);
+      }
+    } catch (err) {
+      console.error("Blob download failed, using navigation fallback:", err);
+      if (span) span.textContent = "Download Offline App (.html)";
+      window.location.href = "/SET_Polytechnic_Timetable_App.html";
+    }
+  }
+
   if (modalDownloadOfflineBtn) {
     modalDownloadOfflineBtn.addEventListener("click", () => {
-      triggerHaptic(14);
-      try {
-        const a = document.createElement("a");
-        a.href = "./SET_Polytechnic_Timetable_App.html";
-        a.download = "SET_Polytechnic_Timetable_App.html";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        const span = modalDownloadOfflineBtn.querySelector("span");
-        if (span) {
-          const original = span.textContent;
-          span.textContent = "✓ File Downloaded!";
-          setTimeout(() => {
-            span.textContent = original;
-          }, 3500);
-        }
-      } catch (err) {
-        console.warn("Download fallback:", err);
-        window.location.href = "./SET_Polytechnic_Timetable_App.html";
-      }
+      downloadOfflineAppFile();
     });
   }
 
@@ -911,7 +956,8 @@ function setupPWA() {
     let newWorker = null;
 
     navigator.serviceWorker
-      .register("./sw.js", { scope: "./" })
+      .register("/sw.js", { scope: "/" })
+      .catch(() => navigator.serviceWorker.register("./sw.js", { scope: "./" }))
       .then((registration) => {
         // Force periodic background update check
         registration.update();

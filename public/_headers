@@ -25,3 +25,8 @@
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+/SET_Polytechnic_Timetable_App.html
+  Content-Disposition: attachment; filename="SET_Polytechnic_Timetable_App.html"
+  Content-Type: text/html; charset=utf-8
+  Cache-Control: public, max-age=0, must-revalidate

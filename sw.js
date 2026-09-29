@@ -1,32 +1,56 @@
 // Phase 6: Service Worker for Offline Timetable PWA
 // Versioned cache name: Bumping this version updates assets for all installed users
-const CACHE_NAME = "timetable-cache-v26";
+const CACHE_NAME = "timetable-cache-v27";
 
-// Explicit precache list of all application files using strictly relative paths
+// Explicit precache list of all application files using both absolute and relative paths
 const PRECACHE_ASSETS = [
+  "/",
   "./",
+  "/index.html",
   "./index.html",
+  "/SET_Polytechnic_Timetable_App.html",
   "./SET_Polytechnic_Timetable_App.html",
+  "/styles.css",
   "./styles.css",
+  "/app.js",
   "./app.js",
+  "/data.js",
   "./data.js",
+  "/time.js",
   "./time.js",
+  "/validate.js",
   "./validate.js",
+  "/ui-today.js",
   "./ui-today.js",
+  "/ui-week.js",
   "./ui-week.js",
+  "/ui-explore.js",
   "./ui-explore.js",
+  "/ui-now.js",
   "./ui-now.js",
+  "/ui-next.js",
   "./ui-next.js",
+  "/ui-overview.js",
   "./ui-overview.js",
+  "/manifest.webmanifest",
   "./manifest.webmanifest",
+  "/manifest.json",
   "./manifest.json",
+  "/icons/icon-192.png",
   "./icons/icon-192.png",
+  "/icons/icon-512.png",
   "./icons/icon-512.png",
+  "/icons/icon-maskable-512.png",
   "./icons/icon-maskable-512.png",
+  "/icons/apple-touch-icon.png",
   "./icons/apple-touch-icon.png",
+  "/icons/icon.svg",
   "./icons/icon.svg",
+  "/pwa-192x192.png",
   "./pwa-192x192.png",
+  "/pwa-512x512.png",
   "./pwa-512x512.png",
+  "/pwa-maskable-512x512.png",
   "./pwa-maskable-512x512.png"
 ];
 
@@ -91,7 +115,10 @@ self.addEventListener("fetch", (event) => {
             return cachedResponse;
           }
           if (event.request.mode === "navigate") {
-            return caches.match("./index.html") || caches.match("./");
+            return caches.match("/index.html", { ignoreSearch: true })
+              .then((resp) => resp || caches.match("./index.html", { ignoreSearch: true }))
+              .then((resp) => resp || caches.match("/", { ignoreSearch: true }))
+              .then((resp) => resp || caches.match("./", { ignoreSearch: true }));
           }
         });
       })

@@ -49,6 +49,30 @@ export default defineConfig(() => {
               } catch (e) {}
             }
 
+            // Serve manifest.webmanifest and manifest.json with standard PWA manifest mime-type
+            if (parsedUrl.pathname === '/manifest.webmanifest' || parsedUrl.pathname === '/manifest.json') {
+              try {
+                const manifestPath = path.resolve(process.cwd(), 'manifest.json');
+                const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
+                res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+                res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                res.end(manifestContent);
+                return;
+              } catch (e) {}
+            }
+
+            // Serve SET_Polytechnic_Timetable_App.html with download attachment support
+            if (parsedUrl.pathname === '/SET_Polytechnic_Timetable_App.html') {
+              try {
+                const appPath = path.resolve(process.cwd(), 'SET_Polytechnic_Timetable_App.html');
+                const appContent = fs.readFileSync(appPath, 'utf-8');
+                res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                res.setHeader('Content-Disposition', 'attachment; filename="SET_Polytechnic_Timetable_App.html"');
+                res.end(appContent);
+                return;
+              } catch (e) {}
+            }
+
             // Serve raw index.html when fetched by tests.js (sec-fetch-dest: empty or accept: */*)
             // Browser full page navigations have sec-fetch-dest: 'document' and continue to Vite's HTML handler
             if (parsedUrl.pathname === '/index.html' || parsedUrl.pathname === '/./index.html') {
