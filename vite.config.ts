@@ -48,7 +48,7 @@ export default defineConfig(() => {
             // Serve sw.js with strict no-cache headers to ensure immediate worker updates
             if (parsedUrl.pathname === '/sw.js' || parsedUrl.pathname === '/./sw.js') {
               try {
-                const swPath = path.resolve(process.cwd(), 'sw.js');
+                const swPath = path.resolve(process.cwd(), 'public', 'sw.js');
                 const swContent = fs.readFileSync(swPath, 'utf-8');
                 res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
                 res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -62,7 +62,7 @@ export default defineConfig(() => {
             // Serve manifest.webmanifest and manifest.json with standard PWA manifest mime-type
             if (parsedUrl.pathname === '/manifest.webmanifest' || parsedUrl.pathname === '/manifest.json') {
               try {
-                const manifestPath = path.resolve(process.cwd(), 'manifest.json');
+                const manifestPath = path.resolve(process.cwd(), 'public', 'manifest.webmanifest');
                 const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
                 res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
                 res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
