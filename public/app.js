@@ -284,28 +284,52 @@ function updateHeaderClock() {
     const mon = String(effDate.getMonth() + 1).padStart(2, "0");
     const d = String(effDate.getDate()).padStart(2, "0");
     const dateStr = `${y}-${mon}-${d}`;
-    const events = getEventsForDate(dateStr);
+
+    // On Calendar tab, reflect the inspected/selected date if available
+    let targetDateStr = dateStr;
+    if (state.activeTab === "calendar" && state.calendarState && state.calendarState.selectedDate) {
+      targetDateStr = state.calendarState.selectedDate;
+    }
+
+    const events = getEventsForDate(targetDateStr);
     const holiday = events.find(e => e.isHoliday || e.type === "holiday");
     const exam = events.find(e => e.type === "exam");
+    const deadline = events.find(e => e.type === "deadline");
+    const meeting = events.find(e => e.type === "meeting");
+    const sem = events.find(e => e.type === "semester");
     const otherEvent = events[0];
 
     if (holiday) {
       eventBadgeEl.className = "header-day-event-badge badge-holiday";
-      eventBadgeEl.innerHTML = `<span class="badge-dot"></span><span class="badge-text" title="${holiday.title}">🌴 ${holiday.title}</span>`;
+      eventBadgeEl.innerHTML = `<span class="badge-icon">🌴</span><span class="badge-text" title="${holiday.title}">${holiday.title}</span>`;
       eventBadgeEl.style.display = "inline-flex";
     } else if (exam) {
       eventBadgeEl.className = "header-day-event-badge badge-exam";
-      eventBadgeEl.innerHTML = `<span class="badge-dot"></span><span class="badge-text" title="${exam.title}">📝 ${exam.title}</span>`;
+      eventBadgeEl.innerHTML = `<span class="badge-icon">📝</span><span class="badge-text" title="${exam.title}">${exam.title}</span>`;
+      eventBadgeEl.style.display = "inline-flex";
+    } else if (deadline) {
+      eventBadgeEl.className = "header-day-event-badge badge-deadline";
+      eventBadgeEl.innerHTML = `<span class="badge-icon">⏳</span><span class="badge-text" title="${deadline.title}">${deadline.title}</span>`;
+      eventBadgeEl.style.display = "inline-flex";
+    } else if (meeting) {
+      eventBadgeEl.className = "header-day-event-badge badge-meeting";
+      eventBadgeEl.innerHTML = `<span class="badge-icon">👥</span><span class="badge-text" title="${meeting.title}">${meeting.title}</span>`;
+      eventBadgeEl.style.display = "inline-flex";
+    } else if (sem) {
+      eventBadgeEl.className = "header-day-event-badge badge-semester";
+      eventBadgeEl.innerHTML = `<span class="badge-icon">🏫</span><span class="badge-text" title="${sem.title}">${sem.title}</span>`;
       eventBadgeEl.style.display = "inline-flex";
     } else if (otherEvent) {
+      const icon = otherEvent.type === "event" ? "🎉" : otherEvent.type === "academic" ? "📚" : "📌";
       eventBadgeEl.className = "header-day-event-badge badge-event";
-      eventBadgeEl.innerHTML = `<span class="badge-dot"></span><span class="badge-text" title="${otherEvent.title}">📌 ${otherEvent.title}</span>`;
+      eventBadgeEl.innerHTML = `<span class="badge-icon">${icon}</span><span class="badge-text" title="${otherEvent.title}">${otherEvent.title}</span>`;
       eventBadgeEl.style.display = "inline-flex";
     } else {
       // Regular day is not required in today and week tabs; it has to be there only for calendar tab
       if (state.activeTab === "calendar") {
         eventBadgeEl.className = "header-day-event-badge badge-regular";
-        eventBadgeEl.innerHTML = `<span class="badge-dot"></span><span class="badge-text">Regular Day</span>`;
+        // Contextual icon 📖 replaces static green dot
+        eventBadgeEl.innerHTML = `<span class="badge-icon">📖</span><span class="badge-text">Regular Day</span>`;
         eventBadgeEl.style.display = "inline-flex";
       } else {
         eventBadgeEl.style.display = "none";
@@ -318,7 +342,7 @@ function updateHeaderFiltersUI() {
   const branchContainer = document.getElementById("header-branch-container");
   const facultyContainer = document.getElementById("header-faculty-container");
 
-  // Remove branch and faculty filter only from Calendar tab (institutional events are campus-wide)
+  // On Calendar tab, hide branch/faculty dropdowns
   if (state.activeTab === "calendar") {
     if (branchContainer) branchContainer.style.display = "none";
     if (facultyContainer) facultyContainer.style.display = "none";

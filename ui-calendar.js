@@ -4,10 +4,13 @@
 // - Prev button disabled at January 2026
 // - Next button disabled at December 2026
 // - Clamped navigation guarantees zero boundary overflow or unconfigured crashes
+// - Theme-elevated aesthetic matching SET Polytechnic's parchment & terracotta style
+// - Formal institutional page boundary limit footer terminating the layout cleanly
 
 import {
   isConfiguredYear,
   getEventsForDate,
+  getEventsForMonth,
   getUpcomingEvents,
   getDaysInMonth,
   getFirstDayOfWeek,
@@ -135,13 +138,18 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
   const firstDayOffset = getFirstDayOfWeek(viewYear, viewMonth); // 0 = Mon, 6 = Sun
   const prevMonthDays = viewMonth === 1 ? getDaysInMonth(viewYear - 1, 12) : getDaysInMonth(viewYear, viewMonth - 1);
 
+  // Month event stats
+  const monthEvents = getEventsForMonth ? getEventsForMonth(viewYear, viewMonth) : [];
+  const monthEventCount = monthEvents.length;
+  const holidayCount = monthEvents.filter(e => e.isHoliday || e.type === "holiday").length;
+
   html += `
     <!-- ================================================================= -->
     <!-- 1. Whole Calendar Month Grid (with Bounded Integrated Navigator)  -->
     <!-- ================================================================= -->
     <section class="calendar-grid-card" aria-label="Month View for ${MONTH_NAMES[viewMonth - 1]} ${viewYear}">
       
-      <!-- Integrated Month / Year Navigator directly on the calendar -->
+      <!-- Integrated Month / Year Navigator directly on the calendar (Themed & Elevated) -->
       <div class="calendar-integrated-nav">
         <button 
           type="button" 
@@ -154,8 +162,18 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
         </button>
         
         <div class="calendar-integrated-title">
-          <h2 class="cal-month-name">${MONTH_NAMES[viewMonth - 1]} ${viewYear}</h2>
-          <span class="cal-sub-label">2026 Academic Session (Jan – Dec 2026)</span>
+          <div class="cal-session-pill">
+            <span class="pill-seal">🏛️</span>
+            <span class="pill-text">ACADEMIC SESSION 2026</span>
+          </div>
+          <h2 class="cal-month-name">${MONTH_NAMES[viewMonth - 1]} <span class="cal-month-year">${viewYear}</span></h2>
+          <div class="cal-month-meta-strip">
+            <span class="cal-month-badge">
+              <span class="meta-dot"></span>${monthEventCount} Event${monthEventCount === 1 ? '' : 's'}${holidayCount > 0 ? ` (${holidayCount} Holiday${holidayCount === 1 ? '' : 's'})` : ''}
+            </span>
+            <span class="cal-meta-divider">•</span>
+            <span class="cal-month-days-text">${daysInCurrentMonth} Days</span>
+          </div>
         </div>
 
         <button 
@@ -257,7 +275,7 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
     </section>
 
     <!-- ================================================================= -->
-    <!-- 2. SELECTED DATE DETAIL (inspects any clicked date on the grid)   -->
+    <!-- 2. SELECTED DATE DETAIL (Themed & Elevated Inspection Card)       -->
     <!-- ================================================================= -->
     <section class="calendar-detail-section" aria-label="Events on ${selectedDateStr}">
   `;
@@ -268,15 +286,21 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
 
   html += `
     <div class="cal-detail-card">
-      <div class="cal-detail-header">
-        <div class="detail-header-left">
-          <span class="detail-eyebrow">${isSelectedToday ? 'Today · ' : ''}Date Inspection</span>
-          <h3 class="detail-date-title">${formatCalendarDate(selectedDateStr)}</h3>
+      <div class="cal-detail-header-elevated">
+        <div class="detail-header-top-row">
+          <div class="detail-inspection-tag">
+            <span class="tag-icon">🔍</span>
+            <span class="tag-text">DATE INSPECTION</span>
+          </div>
+          <div class="detail-header-badges">
+            ${isSelectedToday ? `<span class="cal-status-pill pill-today"><span class="pill-pulse"></span>TODAY</span>` : ''}
+            ${isSelectedHoliday ? `<span class="cal-status-pill pill-holiday">🌴 General Holiday</span>` : ''}
+            <span class="cal-event-count-badge ${selectedEvents.length > 0 ? 'badge-has-events' : ''}">
+              ${selectedEvents.length === 0 ? 'Regular Day' : `${selectedEvents.length} Event${selectedEvents.length === 1 ? '' : 's'}`}
+            </span>
+          </div>
         </div>
-        <div class="detail-header-right">
-          ${isSelectedHoliday ? `<span class="cal-status-pill pill-holiday">🌴 General Holiday</span>` : ''}
-          <span class="cal-event-count-badge">${selectedEvents.length} Event${selectedEvents.length === 1 ? '' : 's'}</span>
-        </div>
+        <h3 class="detail-date-title-elevated">${formatCalendarDate(selectedDateStr)}</h3>
       </div>
 
       <div class="cal-detail-body">
@@ -285,10 +309,10 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
   if (selectedEvents.length === 0) {
     html += `
       <div class="cal-empty-state">
-        <span class="empty-icon">📖</span>
+        <div class="empty-icon-box">📖</div>
         <div class="empty-text-group">
           <strong>Regular Polytechnic Academic Day</strong>
-          <p>Standard lectures and practical laboratories operate on this day according to timetable.</p>
+          <p>Standard lectures and practical laboratories operate on this day according to timetable schedule.</p>
         </div>
       </div>
     `;
@@ -345,13 +369,19 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
   </section>
 
   <!-- ================================================================= -->
-  <!-- 3. UPCOMING ACADEMIC MILESTONES                                   -->
+  <!-- 3. UPCOMING ACADEMIC MILESTONES (Themed & Elevated Roadmap)       -->
   <!-- ================================================================= -->
   <section class="calendar-upcoming-section" aria-label="Upcoming Milestones">
-    <div class="cal-upcoming-card">
-      <div class="upcoming-header-row">
-        <span class="upcoming-icon">⚡</span>
-        <h4 class="upcoming-title">Upcoming Academic Milestones</h4>
+    <div class="cal-upcoming-card-elevated">
+      <div class="upcoming-header-elevated">
+        <div class="upcoming-header-badge">
+          <span class="badge-icon">📌</span>
+          <span class="badge-text">ACADEMIC ROADMAP</span>
+        </div>
+        <div class="upcoming-title-group">
+          <h4 class="upcoming-title-text">Upcoming Academic Milestones</h4>
+          <span class="upcoming-subtitle-text">Next institutional events, assessments & government holidays</span>
+        </div>
       </div>
       <div class="upcoming-events-list">
   `;
@@ -366,10 +396,10 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
       const isMulti = Boolean(upEv.endDate && upEv.endDate !== upEv.date);
 
       html += `
-        <div class="upcoming-item" data-date="${upEv.date}" role="button" tabindex="0" title="Inspect ${upEv.title}">
-          <div class="upcoming-date-box">
-            <span class="upcoming-date-day">${upEv.date.slice(8, 10)}</span>
-            <span class="upcoming-date-month">${MONTH_NAMES[parseInt(upEv.date.slice(5, 7), 10) - 1].slice(0, 3)}</span>
+        <div class="upcoming-item-elevated" data-date="${upEv.date}" role="button" tabindex="0" title="Inspect ${upEv.title}">
+          <div class="upcoming-date-box-elevated">
+            <span class="upcoming-date-month-elevated">${MONTH_NAMES[parseInt(upEv.date.slice(5, 7), 10) - 1].slice(0, 3)}</span>
+            <span class="upcoming-date-day-elevated">${upEv.date.slice(8, 10)}</span>
           </div>
           <div class="upcoming-info-col">
             <span class="upcoming-item-title">${upEv.title}</span>
@@ -377,6 +407,11 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
               <span class="upcoming-badge ${badge.badgeClass}">${badge.label}</span>
               ${isMulti ? `<span class="upcoming-span-text">Through ${formatCalendarDate(upEv.endDate, false)}</span>` : ''}
             </div>
+          </div>
+          <div class="upcoming-chevron-box" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
           </div>
         </div>
       `;
@@ -387,6 +422,29 @@ export function renderCalendarView(container, effectiveDate, calendarState = {},
       </div>
     </div>
   </section>
+
+  <!-- ================================================================= -->
+  <!-- 4. OFFICIAL INSTITUTIONAL CALENDAR BOUNDARY LIMIT FOOTER         -->
+  <!-- ================================================================= -->
+  <footer class="cal-page-boundary-limit" role="contentinfo" aria-label="Academic Calendar Boundary Limit">
+    <div class="cal-boundary-divider">
+      <span class="boundary-line"></span>
+      <span class="boundary-emblem">🏛️</span>
+      <span class="boundary-line"></span>
+    </div>
+    <div class="cal-boundary-seal-card">
+      <div class="boundary-seal-icon">🏫</div>
+      <div class="boundary-seal-content">
+        <strong class="boundary-institution-title">S.E.T. Polytechnic, Melukote</strong>
+        <span class="boundary-affiliation-text">Department of Technical Education (DTE), Karnataka</span>
+        <span class="boundary-scope-note">Academic Session 2026 • Master Calendar Boundary [Jan – Dec 2026]</span>
+      </div>
+      <div class="boundary-verified-badge" title="Official Institutional Schedule Verified">
+        <span class="verified-dot"></span>
+        <span class="verified-text">Active Session</span>
+      </div>
+    </div>
+  </footer>
 
   </div> <!-- End calendar-screen -->
   `;
@@ -458,7 +516,7 @@ function attachListeners(container, currentYear, currentMonth, selectedDate, onS
   });
 
   // Upcoming items click to select date
-  container.querySelectorAll(".upcoming-item[data-date]").forEach(item => {
+  container.querySelectorAll(".upcoming-item-elevated[data-date]").forEach(item => {
     item.addEventListener("click", () => {
       const dateVal = item.getAttribute("data-date");
       if (dateVal) {
