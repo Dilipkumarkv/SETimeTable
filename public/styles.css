@@ -474,6 +474,88 @@ select:focus-visible,
   box-shadow: 0 1px 4px rgba(60, 42, 28, 0.04);
 }
 
+/* Simple day event / milestone display beside the top header time panel */
+.header-day-event-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 12px;
+  min-height: 40px;
+  max-width: 220px;
+  box-shadow: 0 1px 4px rgba(60, 42, 28, 0.04);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.header-day-event-badge .badge-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-day-event-badge.badge-holiday {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.header-day-event-badge.badge-holiday .badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #dc2626;
+  flex-shrink: 0;
+}
+
+.header-day-event-badge.badge-exam {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #5b21b6;
+}
+
+.header-day-event-badge.badge-exam .badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #7c3aed;
+  flex-shrink: 0;
+}
+
+.header-day-event-badge.badge-event {
+  background: #fdf2f8;
+  border-color: #fbcfe8;
+  color: #9d174d;
+}
+
+.header-day-event-badge.badge-event .badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #db2777;
+  flex-shrink: 0;
+}
+
+.header-day-event-badge.badge-regular {
+  background: var(--bg-muted);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.header-day-event-badge.badge-regular .badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  flex-shrink: 0;
+}
+
 .live-indicator {
   width: 8px;
   height: 8px;
@@ -2337,6 +2419,45 @@ select:focus-visible,
   letter-spacing: -0.01em;
 }
 
+.today-day-event-chip {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.today-day-event-chip.chip-holiday {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.today-day-event-chip.chip-exam {
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #5b21b6;
+}
+
+.today-day-event-chip.chip-event {
+  background: #fdf2f8;
+  border: 1px solid #fbcfe8;
+  color: #9d174d;
+}
+
+.today-day-event-chip.chip-regular {
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
 .today-summary-right {
   display: flex;
   align-items: center;
@@ -3977,4 +4098,1008 @@ button, select, [role="button"], [role="tab"], .nav-tab-btn, .week-day-pill {
 .btn-inspect-faculty:active {
   transform: scale(0.96);
 }
+
+/* ==========================================================================
+   Academic Calendar & Karnataka Holidays Styles
+   ========================================================================== */
+.calendar-screen {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 12px 14px 80px;
+}
+
+/* ==========================================================================
+   1. PRIORITY ONE: Today Prominent Academic Card
+   ========================================================================== */
+.cal-today-prominent-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(60, 42, 28, 0.06);
+  margin-bottom: 14px;
+}
+
+.today-prominent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.today-prominent-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.today-prominent-badge {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.badge-today {
+  background: #f5ece3;
+  color: var(--accent);
+  border: 1px solid #ebdacf;
+}
+
+.badge-holiday {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.today-prominent-dateline {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.today-prominent-status-chip {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.today-prominent-body {
+  margin-top: 12px;
+}
+
+.today-prominent-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+}
+
+.prominent-empty-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.prominent-empty-title {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.prominent-empty-subtitle {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.today-prominent-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prominent-event-item {
+  display: flex;
+  background: #faf7f2;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.prominent-type-strip {
+  width: 6px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.prominent-event-item.type-holiday .prominent-type-strip { background: #dc2626; }
+.prominent-event-item.type-exam .prominent-type-strip { background: #7c3aed; }
+.prominent-event-item.type-deadline .prominent-type-strip { background: #d97706; }
+.prominent-event-item.type-meeting .prominent-type-strip { background: #2563eb; }
+.prominent-event-item.type-semester .prominent-type-strip { background: #4f46e5; }
+.prominent-event-item.type-academic .prominent-type-strip { background: #0d9488; }
+.prominent-event-item.type-event .prominent-type-strip { background: #db2777; }
+
+.prominent-event-content {
+  padding: 12px 14px;
+  flex: 1;
+}
+
+.prominent-headline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.prominent-event-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.prominent-event-desc {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
+/* ==========================================================================
+   2. PRIORITY TWO: Integrated Month / Year Navigation on Grid
+   ========================================================================== */
+.calendar-integrated-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 12px;
+}
+
+.calendar-integrated-title {
+  text-align: center;
+}
+
+.calendar-integrated-title .cal-month-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.calendar-integrated-title .cal-sub-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.btn-cal-nav {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-cal-nav:hover {
+  background: #e7ded4;
+  border-color: #d8cdbf;
+}
+
+.btn-cal-nav:active {
+  transform: scale(0.94);
+}
+
+.btn-cal-nav:disabled,
+.btn-cal-nav[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: var(--bg-muted);
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   5. PRIORITY FOUR: Quick Event Filter Bar Card
+   ========================================================================== */
+.calendar-filter-bar-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-top: 14px;
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.05);
+}
+
+.filter-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.filter-bar-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.btn-clear-category-filter {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.calendar-category-chips {
+  display: flex;
+  overflow-x: auto;
+  gap: 6px;
+  margin-top: 12px;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.calendar-category-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.cal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.cal-chip:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.cal-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.calendar-grid-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 14px 12px;
+  margin-top: 12px;
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.05);
+}
+
+.cal-weekdays-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cal-weekday-cell.is-weekend-col {
+  color: #a3725b;
+}
+
+.cal-dates-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.cal-day-cell {
+  aspect-ratio: 1 / 1;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.12s ease;
+  padding: 2px;
+}
+
+.cal-day-cell:hover:not(.is-pad-day) {
+  background: var(--bg-muted);
+  border-color: var(--border-color);
+}
+
+.day-number-text {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cal-day-cell.is-pad-day {
+  opacity: 0.28;
+  cursor: default;
+  pointer-events: none;
+}
+
+.cal-day-cell.is-weekend {
+  background: #faf6f1;
+}
+
+.cal-day-cell.is-sunday .day-number-text {
+  color: #b91c1c;
+}
+
+.cal-day-cell.is-today-day {
+  border: 1.5px solid var(--accent);
+  background: #fdfaf6;
+}
+
+.cal-day-cell.is-today-day .day-number-text {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.cal-day-cell.is-selected-day {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 2px 8px rgba(167, 103, 59, 0.35);
+}
+
+.cal-day-cell.is-selected-day .day-number-text {
+  color: #ffffff !important;
+  font-weight: 800;
+}
+
+.cal-day-cell.is-selected-day .event-dot {
+  background: #ffffff !important;
+}
+
+.day-event-indicators {
+  display: flex;
+  gap: 2.5px;
+  margin-top: 3px;
+  align-items: center;
+  justify-content: center;
+  height: 6px;
+}
+
+.event-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-holiday { background: #dc2626; }
+.dot-exam { background: #7c3aed; }
+.dot-deadline { background: #d97706; }
+.dot-meeting { background: #2563eb; }
+.dot-other { background: #059669; }
+
+.cal-detail-section {
+  margin-top: 14px;
+}
+
+.cal-detail-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.05);
+}
+
+.cal-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.detail-date-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 2px 0 0;
+}
+
+.cal-status-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.pill-holiday {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.pill-academic {
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #5b21b6;
+}
+
+.cal-event-count-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  padding: 4px 9px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+
+.cal-empty-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 12px;
+}
+
+.empty-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.empty-text-group strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.empty-text-group p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 3px 0 0;
+}
+
+.cal-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.cal-event-card {
+  display: flex;
+  background: #faf7f2;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.12s ease;
+}
+
+.cal-event-type-strip {
+  width: 5px;
+  flex-shrink: 0;
+  background: #059669;
+}
+
+.cal-event-card.type-holiday .cal-event-type-strip { background: #dc2626; }
+.cal-event-card.type-exam .cal-event-type-strip { background: #7c3aed; }
+.cal-event-card.type-deadline .cal-event-type-strip { background: #d97706; }
+.cal-event-card.type-meeting .cal-event-type-strip { background: #2563eb; }
+.cal-event-card.type-semester .cal-event-type-strip { background: #4f46e5; }
+.cal-event-card.type-academic .cal-event-type-strip { background: #0d9488; }
+
+.cal-event-content {
+  padding: 12px 14px;
+  flex: 1;
+}
+
+.event-headline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cal-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.badge-type-holiday { background: #fee2e2; color: #991b1b; }
+.badge-type-exam { background: #ede9fe; color: #5b21b6; }
+.badge-type-deadline { background: #fef3c7; color: #92400e; }
+.badge-type-meeting { background: #dbeafe; color: #1e40af; }
+.badge-type-semester { background: #e0e7ff; color: #3730a3; }
+.badge-type-academic { background: #ccfbf1; color: #115e59; }
+.badge-type-event { background: #fce7f3; color: #9d174d; }
+.badge-type-other { background: #e5e7eb; color: #374151; }
+
+.source-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.source-govt {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.source-college {
+  background: #f5ece3;
+  color: #8c532b;
+  border: 1px solid #ebdacf;
+}
+
+.cal-event-title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.event-multi-day-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 4px 0;
+}
+
+.cal-event-description {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
+.cal-event-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.cal-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-secondary);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.calendar-upcoming-section {
+  margin-top: 14px;
+}
+
+.cal-upcoming-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.05);
+}
+
+.upcoming-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.upcoming-icon {
+  font-size: 1.1rem;
+}
+
+.upcoming-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.upcoming-events-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.upcoming-item:last-child {
+  border-bottom: none;
+}
+
+.upcoming-item:hover {
+  background: var(--bg-muted);
+}
+
+.upcoming-date-box {
+  width: 44px;
+  height: 44px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.upcoming-date-day {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.upcoming-date-month {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.upcoming-info-col {
+  flex: 1;
+}
+
+.upcoming-item-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: block;
+}
+
+.upcoming-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.upcoming-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.upcoming-span-text {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.calendar-unconfigured-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 32px 20px;
+  text-align: center;
+  margin-top: 14px;
+}
+
+.unconfigured-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+
+.calendar-unconfigured-card h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.calendar-unconfigured-card p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 480px;
+  margin: 0 auto 16px;
+  line-height: 1.4;
+}
+
+.btn-reset-cal-year {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Today Screen Academic Integration */
+.today-academic-banner {
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 10px 0 14px;
+}
+
+.banner-holiday {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.banner-academic {
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+}
+
+.academic-banner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.academic-banner-pill {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.banner-holiday .academic-banner-pill { color: #991b1b; }
+.banner-academic .academic-banner-pill { color: #5b21b6; }
+
+.academic-banner-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.academic-banner-events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.academic-banner-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.banner-item-type {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.banner-item-type.type-holiday { background: #fee2e2; color: #991b1b; }
+.banner-item-type.type-exam { background: #ede9fe; color: #5b21b6; }
+.banner-item-type.type-academic { background: #ccfbf1; color: #115e59; }
+.banner-item-type.type-deadline { background: #fef3c7; color: #92400e; }
+.banner-item-type.type-meeting { background: #dbeafe; color: #1e40af; }
+.banner-item-type.type-event { background: #fce7f3; color: #9d174d; }
+
+.banner-item-body {
+  flex: 1;
+}
+
+.banner-item-title {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.banner-item-desc {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.banner-item-meta {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.today-upcoming-milestones-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-top: 18px;
+  box-shadow: 0 1px 3px rgba(60, 42, 28, 0.05);
+}
+
+.milestones-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.milestones-header-icon {
+  font-size: 1.05rem;
+}
+
+.milestones-header-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.milestones-card-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.milestone-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.milestone-item-row:last-child {
+  border-bottom: none;
+}
+
+.milestone-date-chip {
+  width: 38px;
+  height: 38px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.milestone-day {
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.milestone-mon {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.milestone-item-body {
+  flex: 1;
+}
+
+.milestone-title-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: block;
+}
+
+.milestone-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.milestone-type-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.milestone-type-tag.type-holiday { background: #fee2e2; color: #991b1b; }
+.milestone-type-tag.type-exam { background: #ede9fe; color: #5b21b6; }
+.milestone-type-tag.type-deadline { background: #fef3c7; color: #92400e; }
+.milestone-type-tag.type-meeting { background: #dbeafe; color: #1e40af; }
+.milestone-type-tag.type-event { background: #fce7f3; color: #9d174d; }
+.milestone-type-tag.type-semester { background: #e0e7ff; color: #3730a3; }
+.milestone-type-tag.type-academic { background: #ccfbf1; color: #115e59; }
+
+.milestone-source-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 

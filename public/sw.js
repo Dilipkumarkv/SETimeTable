@@ -1,6 +1,6 @@
 // Phase 6: Service Worker for Offline Timetable PWA
 // Versioned cache name: Bumping this version updates assets for all installed users
-const CACHE_NAME = "timetable-cache-v28";
+const CACHE_NAME = "timetable-cache-v29";
 
 // Deterministic production asset list (strictly deduplicated)
 const PRECACHE_ASSETS = [
@@ -11,6 +11,10 @@ const PRECACHE_ASSETS = [
   "./data.js",
   "./time.js",
   "./validate.js",
+  "./calendar.js",
+  "./ui-calendar.js",
+  "./academic-calendar.generated.js",
+  "./calendar/holidays/2026.js",
   "./ui-now.js",
   "./ui-next.js",
   "./ui-overview.js",

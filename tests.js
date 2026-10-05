@@ -38,6 +38,28 @@ import {
   getRelativeSlotTime,
   getWeeklyWorkloadStats
 } from "./time.js";
+import { KARNATAKA_HOLIDAYS_2026 } from "./calendar/holidays/2026.js";
+import {
+  isConfiguredYear,
+  getHolidaysForYear,
+  getAcademicEventsForYear,
+  getUnifiedCalendarEvents,
+  doesEventCoverDate,
+  getEventsForDate,
+  hasEventsOnDate,
+  isHolidayDate,
+  getEventsForMonth,
+  getUpcomingEvents,
+  formatCalendarDate
+} from "./calendar.js";
+import {
+  clampCalendarBounds,
+  renderCalendarView,
+  CALENDAR_MIN_YEAR,
+  CALENDAR_MIN_MONTH,
+  CALENDAR_MAX_YEAR,
+  CALENDAR_MAX_MONTH
+} from "./ui-calendar.js";
 
 export async function runAllTests() {
   const results = [];
@@ -1551,6 +1573,201 @@ export async function runAllTests() {
     sampleBoundaryValid,
     `sampleBoundaryValid: ${sampleBoundaryValid}`
   );
+
+  // ==========================================================================
+  // Section R: Academic Calendar & Karnataka Holidays Engine Tests
+  // ==========================================================================
+
+  // Test R1: Karnataka 2026 General Holidays dataset matches DPAR 16 HHL 2025
+  const holidays2026 = getHolidaysForYear(2026);
+  assert(
+    "Academic Calendar: Karnataka 2026 holidays loaded with 21 general holidays as per DPAR Notification",
+    Array.isArray(holidays2026) && holidays2026.length === 21,
+    `Count: ${holidays2026.length}`
+  );
+
+  // Test R2: Critical holiday dates verified against government notification
+  const holidayDates = new Set(holidays2026.map(h => h.date));
+  const expectedKeyHolidays = [
+    "2026-01-15", // Makara Sankranti
+    "2026-01-26", // Republic Day
+    "2026-03-19", // Ugadi
+    "2026-08-15", // Independence Day
+    "2026-10-02", // Gandhi Jayanthi
+    "2026-10-20", // Ayudha Pooja
+    "2026-10-21", // Vijayadasami
+    "2026-11-01", // Kannada Rajyothsava
+    "2026-11-08", // Balipadyami / Deepavali
+    "2026-12-25"  // Christmas
+  ];
+  const allKeyHolidaysFound = expectedKeyHolidays.every(d => holidayDates.has(d));
+  assert(
+    "Academic Calendar: Critical Karnataka holidays dates (Sankranti, Republic Day, Ugadi, Dasara, Rajyothsava, Deepavali) verified",
+    allKeyHolidaysFound,
+    `Expected all key dates present in ${Array.from(holidayDates).join(", ")}`
+  );
+
+  // Test R3: Excel-imported academic calendar generated data exists
+  const academicEvents2026 = getAcademicEventsForYear(2026);
+  assert(
+    "Academic Calendar: Generated institutional academic events exist and contain required entries",
+    Array.isArray(academicEvents2026) && academicEvents2026.length >= 15,
+    `Found ${academicEvents2026.length} institutional events`
+  );
+
+  // Test R4: Multi-day academic event date coverage
+  // E.g. Internal Assessment - I on 2026-10-14 through 2026-10-16
+  const cie1Event = academicEvents2026.find(e => e.title.includes("Internal Assessment - I") && e.date === "2026-10-14");
+  const coversStart = cie1Event ? doesEventCoverDate(cie1Event, "2026-10-14") : false;
+  const coversMid = cie1Event ? doesEventCoverDate(cie1Event, "2026-10-15") : false;
+  const coversEnd = cie1Event ? doesEventCoverDate(cie1Event, "2026-10-16") : false;
+  const doesNotCoverOutside = cie1Event ? !doesEventCoverDate(cie1Event, "2026-10-17") : false;
+  assert(
+    "Academic Calendar: Multi-day academic events correctly cover start, intermediate, and end dates",
+    coversStart && coversMid && coversEnd && doesNotCoverOutside,
+    `Start: ${coversStart}, Mid: ${coversMid}, End: ${coversEnd}, Outside: ${doesNotCoverOutside}`
+  );
+
+  // Test R5: getEventsForDate returns correct events for given dates
+  const eventsOnOct14 = getEventsForDate("2026-10-14");
+  const eventsOnOct02 = getEventsForDate("2026-10-02");
+  const hasOct14Exam = eventsOnOct14.some(e => e.type === "exam");
+  const hasGandhiJayanthi = eventsOnOct02.some(e => e.title.includes("Gandhi Jayanthi"));
+  assert(
+    "Academic Calendar: getEventsForDate retrieves specific events (IA-1 on Oct 14, Gandhi Jayanthi on Oct 02)",
+    hasOct14Exam && hasGandhiJayanthi,
+    `Oct 14 has exam: ${hasOct14Exam}, Oct 02 has Gandhi Jayanthi: ${hasGandhiJayanthi}`
+  );
+
+  // Test R6: isHolidayDate correctly distinguishes holidays from working days
+  const isOct02Holiday = isHolidayDate("2026-10-02");
+  const isOct14Holiday = isHolidayDate("2026-10-14");
+  assert(
+    "Academic Calendar: isHolidayDate returns true for official holidays and false for regular academic days",
+    isOct02Holiday === true && isOct14Holiday === false,
+    `Oct 02 holiday: ${isOct02Holiday}, Oct 14 holiday: ${isOct14Holiday}`
+  );
+
+  // Test R7: getUpcomingEvents returns upcoming events in chronological order
+  const upcomingList = getUpcomingEvents("2026-10-01", 5);
+  const isCalChronological = upcomingList.every((ev, idx) => {
+    if (idx === 0) return true;
+    return ev.date >= upcomingList[idx - 1].date;
+  });
+  assert(
+    "Academic Calendar: getUpcomingEvents returns chronological list of upcoming milestones",
+    upcomingList.length > 0 && isCalChronological,
+    `Length: ${upcomingList.length}, isCalChronological: ${isCalChronological}`
+  );
+
+  // Test R8: Year configuration integrity
+  const is2026Valid = isConfiguredYear(2026);
+  const is2099Valid = isConfiguredYear(2099);
+  assert(
+    "Academic Calendar: isConfiguredYear correctly validates configured vs unconfigured years",
+    is2026Valid === true && is2099Valid === false,
+    `2026: ${is2026Valid}, 2099: ${is2099Valid}`
+  );
+
+  // Test R9: Security / User Boundary — No user-facing Excel import/upload UI
+  const indexHtmlContent = await fetch("./index.html").then(r => r.text()).catch(() => "");
+  const hasFileInput = indexHtmlContent.includes('type="file"') || indexHtmlContent.includes("type='file'");
+  const hasUploadButton = indexHtmlContent.toLowerCase().includes("upload calendar") || indexHtmlContent.toLowerCase().includes("choose xlsx");
+  assert(
+    "Academic Calendar Security Boundary: Zero user-facing file input or Excel upload UI in client markup",
+    !hasFileInput && !hasUploadButton,
+    `hasFileInput: ${hasFileInput}, hasUploadButton: ${hasUploadButton}`
+  );
+
+  // Test R10: Developer Importer Schema Validation Invariants
+  const importerMod = await import("./scripts/import-academic-calendar.js").catch(() => null);
+  if (importerMod && typeof importerMod.validateAndNormalizeRows === "function") {
+    let missingDateThrows = false;
+    let unknownTypeThrows = false;
+    let invalidEndDateThrows = false;
+    let duplicateThrows = false;
+
+    // Test missing date
+    try {
+      importerMod.validateAndNormalizeRows([{ Title: "Test", Type: "exam" }]);
+    } catch (e) {
+      missingDateThrows = e.message.includes("Missing required \"Date\"");
+    }
+
+    // Test unknown type
+    try {
+      importerMod.validateAndNormalizeRows([{ Date: "2026-10-14", Title: "Party", Type: "party" }]);
+    } catch (e) {
+      unknownTypeThrows = e.message.includes("Unknown calendar event type \"party\"");
+    }
+
+    // Test invalid end date (preceding start date)
+    try {
+      importerMod.validateAndNormalizeRows([{ Date: "2026-10-14", "End Date": "2026-10-10", Title: "Backwards", Type: "exam" }]);
+    } catch (e) {
+      invalidEndDateThrows = e.message.includes("precedes start Date");
+    }
+
+    // Test duplicate event
+    try {
+      importerMod.validateAndNormalizeRows([
+        { Date: "2026-10-14", Title: "Duplicate", Type: "exam" },
+        { Date: "2026-10-14", Title: "Duplicate", Type: "exam" }
+      ]);
+    } catch (e) {
+      duplicateThrows = e.message.includes("Exact duplicate event detected");
+    }
+
+    assert(
+      "Academic Calendar Importer: Schema validator enforces loud errors on missing date, unknown type, inverted end date, and duplicates",
+      missingDateThrows && unknownTypeThrows && invalidEndDateThrows && duplicateThrows,
+      `missingDate: ${missingDateThrows}, unknownType: ${unknownTypeThrows}, invalidEnd: ${invalidEndDateThrows}, duplicate: ${duplicateThrows}`
+    );
+  }
+
+  // Test R11: Academic Calendar Navigation Boundary Clamping
+  const clampedUnderflow = clampCalendarBounds(2025, 12);
+  const clampedOverflow = clampCalendarBounds(2027, 3);
+  const clampedValidMin = clampCalendarBounds(CALENDAR_MIN_YEAR, CALENDAR_MIN_MONTH);
+  const clampedValidMax = clampCalendarBounds(CALENDAR_MAX_YEAR, CALENDAR_MAX_MONTH);
+  const clampedValidMid = clampCalendarBounds(2026, 8);
+
+  const isUnderflowCorrect = clampedUnderflow.year === 2026 && clampedUnderflow.month === 1;
+  const isOverflowCorrect = clampedOverflow.year === 2026 && clampedOverflow.month === 12;
+  const isValidPreserved = clampedValidMin.month === 1 && clampedValidMax.month === 12 && clampedValidMid.month === 8;
+
+  assert(
+    "Academic Calendar Boundary: clampCalendarBounds strictly enforces [Jan 2026 – Dec 2026] range",
+    isUnderflowCorrect && isOverflowCorrect && isValidPreserved,
+    `Underflow: ${JSON.stringify(clampedUnderflow)}, Overflow: ${JSON.stringify(clampedOverflow)}, Valid: ${JSON.stringify(clampedValidMid)}`
+  );
+
+  // Test R12: Calendar Boundary UI Control Inactivation (Disabled Prev at Jan 2026, Disabled Next at Dec 2026)
+  if (typeof document !== "undefined") {
+    const dummyContainer = document.createElement("div");
+
+    // Test Min Boundary: Jan 2026 -> prev button must be disabled
+    renderCalendarView(dummyContainer, new Date("2026-01-15T10:00:00"), { year: 2026, month: 1 }, () => {});
+    const btnPrevJan = dummyContainer.querySelector(".btn-cal-prev-month");
+    const isJanPrevDisabled = btnPrevJan && (btnPrevJan.hasAttribute("disabled") || btnPrevJan.getAttribute("aria-disabled") === "true");
+
+    // Test Max Boundary: Dec 2026 -> next button must be disabled
+    renderCalendarView(dummyContainer, new Date("2026-12-15T10:00:00"), { year: 2026, month: 12 }, () => {});
+    const btnNextDec = dummyContainer.querySelector(".btn-cal-next-month");
+    const isDecNextDisabled = btnNextDec && (btnNextDec.hasAttribute("disabled") || btnNextDec.getAttribute("aria-disabled") === "true");
+
+    // Test Mid Point: Oct 2026 -> neither button disabled
+    renderCalendarView(dummyContainer, new Date("2026-10-15T10:00:00"), { year: 2026, month: 10 }, () => {});
+    const btnPrevOct = dummyContainer.querySelector(".btn-cal-prev-month");
+    const btnNextOct = dummyContainer.querySelector(".btn-cal-next-month");
+    const areBothInteractiveInMid = btnPrevOct && !btnPrevOct.hasAttribute("disabled") && btnNextOct && !btnNextOct.hasAttribute("disabled");
+
+    assert(
+      "Academic Calendar UI: Previous button disabled at Jan 2026, Next button disabled at Dec 2026, both interactive in between",
+      Boolean(isJanPrevDisabled && isDecNextDisabled && areBothInteractiveInMid),
+      `Jan Prev Disabled: ${isJanPrevDisabled}, Dec Next Disabled: ${isDecNextDisabled}, Oct Mid Interactive: ${areBothInteractiveInMid}`
+    );
+  }
 
   return results;
 }

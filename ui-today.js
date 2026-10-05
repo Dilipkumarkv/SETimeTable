@@ -6,6 +6,11 @@ import {
   filterTodayTimeline
 } from "./time.js";
 
+import {
+  getEventsForDate,
+  getUpcomingEvents
+} from "./calendar.js";
+
 /**
  * Formats faculty initials into full names where possible.
  */
@@ -58,13 +63,38 @@ export function renderTodayView(container, data, currentDate, filters = { branch
 
   const resumeTime = nextSessionTime || "09:45";
 
+  // Check for any academic calendar events or holidays today
+  const curY = currentDate ? currentDate.getFullYear() : 2026;
+  const curM = currentDate ? String(currentDate.getMonth() + 1).padStart(2, "0") : "10";
+  const curD = currentDate ? String(currentDate.getDate()).padStart(2, "0") : "14";
+  const todayDateStr = `${curY}-${curM}-${curD}`;
+  const todayAcademicEvents = getEventsForDate(todayDateStr);
+  const primaryHoliday = todayAcademicEvents.find(e => e.isHoliday || e.type === "holiday");
+  const primaryExam = todayAcademicEvents.find(e => e.type === "exam");
+  const primaryEvent = todayAcademicEvents[0];
+
+  // Regular day is not required in Today and Week tabs; only actual events or holidays are highlighted
+  let todayPillLabel = "";
+  let todayPillClass = "";
+  if (primaryHoliday) {
+    todayPillLabel = `🌴 ${primaryHoliday.title}`;
+    todayPillClass = "chip-holiday";
+  } else if (primaryExam) {
+    todayPillLabel = `📝 ${primaryExam.title}`;
+    todayPillClass = "chip-exam";
+  } else if (primaryEvent) {
+    todayPillLabel = `📌 ${primaryEvent.title}`;
+    todayPillClass = "chip-event";
+  }
+
   let html = `
     <div class="today-screen">
-      <!-- Concise Header Summary -->
+      <!-- Concise Header Summary with Simple Event Display beside Time -->
       <section class="today-summary-bar" aria-label="Today Schedule Status">
         <div class="today-summary-left">
           <span class="today-date-text">${fullDayName}, ${day}</span>
           <span class="today-clock-text">${timeStr}</span>
+          ${todayPillLabel ? `<span class="today-day-event-chip ${todayPillClass}" title="${todayPillLabel}">${todayPillLabel}</span>` : ''}
         </div>
         <div class="today-summary-right">
           <span class="today-status-chip status-${status}" role="status">${statusSummary}</span>
@@ -271,6 +301,44 @@ export function renderTodayView(container, data, currentDate, filters = { branch
 
   html += `
       </div> <!-- End timeline-stream -->
+  `;
+
+  // Upcoming Academic Milestones (Next 3 events)
+  const upcomingEvents = getUpcomingEvents(currentDate || new Date(), 3);
+  if (upcomingEvents.length > 0) {
+    const monthShorts = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    html += `
+      <section class="today-upcoming-milestones-card" aria-label="Upcoming Academic Events">
+        <div class="milestones-card-header">
+          <span class="milestones-header-icon">⚡</span>
+          <h4 class="milestones-header-title">Upcoming Academic Milestones</h4>
+        </div>
+        <div class="milestones-card-list">
+          ${upcomingEvents.map(up => {
+            const mIdx = parseInt(up.date.slice(5, 7), 10) - 1;
+            const dNum = up.date.slice(8, 10);
+            return `
+              <div class="milestone-item-row">
+                <div class="milestone-date-chip">
+                  <span class="m-day">${dNum}</span>
+                  <span class="m-month">${monthShorts[mIdx]}</span>
+                </div>
+                <div class="milestone-item-body">
+                  <span class="milestone-title-text">${up.title}</span>
+                  <div class="milestone-tags-row">
+                    <span class="milestone-type-tag type-${up.type}">${up.type}</span>
+                    ${up.source === 'karnataka-holiday' ? `<span class="milestone-source-tag">Govt Holiday</span>` : ''}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  html += `
     </div> <!-- End today-screen -->
   `;
 

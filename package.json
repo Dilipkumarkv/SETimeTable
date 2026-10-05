@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build && node generate-offline-bundle.js",
+    "import-calendar": "node scripts/import-academic-calendar.js",
+    "build": "npm run import-calendar && vite build && node generate-offline-bundle.js",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
@@ -33,6 +34,7 @@
     "sharp": "^0.35.4",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "xlsx": "^0.18.5"
   }
 }

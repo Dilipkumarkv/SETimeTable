@@ -28,6 +28,8 @@ import { renderExploreView } from "./ui-explore.js";
 import { renderNowView } from "./ui-now.js";
 import { renderNextView } from "./ui-next.js";
 import { renderOverviewView } from "./ui-overview.js";
+import { renderCalendarView } from "./ui-calendar.js";
+import { getEventsForDate, getUnifiedCalendarEvents, getUpcomingEvents } from "./calendar.js";
 
 // Global application state (Filters in memory only)
 const state = {
@@ -62,6 +64,12 @@ const state = {
     weekTargetType: "class",
     selectedClass: "CS-III",
     selectedLecturer: "RBL"
+  },
+  calendarState: {
+    year: 2026,
+    month: 10,
+    selectedDate: "2026-10-14",
+    categoryFilter: "all"
   },
   data: TIMETABLE,
   diagnostics: []
@@ -123,6 +131,10 @@ window.TimetableApp = {
   filterCurrentEntries,
   filterUpcomingEntries,
   filterDayGrid,
+  getEventsForDate,
+  getUnifiedCalendarEvents,
+  getUpcomingEvents,
+  renderCalendarView,
   triggerHaptic,
   vibrate: triggerHaptic,
   getFilters() {
@@ -264,9 +276,58 @@ function updateHeaderClock() {
       simActiveBadge.style.display = "none";
     }
   }
+
+  // Update simple day event / milestone display beside time panel
+  const eventBadgeEl = document.getElementById("header-day-event");
+  if (eventBadgeEl) {
+    const y = effDate.getFullYear();
+    const mon = String(effDate.getMonth() + 1).padStart(2, "0");
+    const d = String(effDate.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${mon}-${d}`;
+    const events = getEventsForDate(dateStr);
+    const holiday = events.find(e => e.isHoliday || e.type === "holiday");
+    const exam = events.find(e => e.type === "exam");
+    const otherEvent = events[0];
+
+    if (holiday) {
+      eventBadgeEl.className = "header-day-event-badge badge-holiday";
+      eventBadgeEl.innerHTML = `<span class="badge-dot"></span><span class="badge-text" title="${holiday.title}">🌴 ${holiday.title}</span>`;
+      eventBadgeEl.style.display = "inline-flex";
+    } else if (exam) {
+      eventBadgeEl.className = "header-day-event-badge badge-exam";
+      eventBadgeEl.innerHTML = `<span class="badge-dot"></span><span class="badge-text" title="${exam.title}">📝 ${exam.title}</span>`;
+      eventBadgeEl.style.display = "inline-flex";
+    } else if (otherEvent) {
+      eventBadgeEl.className = "header-day-event-badge badge-event";
+      eventBadgeEl.innerHTML = `<span class="badge-dot"></span><span class="badge-text" title="${otherEvent.title}">📌 ${otherEvent.title}</span>`;
+      eventBadgeEl.style.display = "inline-flex";
+    } else {
+      // Regular day is not required in today and week tabs; it has to be there only for calendar tab
+      if (state.activeTab === "calendar") {
+        eventBadgeEl.className = "header-day-event-badge badge-regular";
+        eventBadgeEl.innerHTML = `<span class="badge-dot"></span><span class="badge-text">Regular Day</span>`;
+        eventBadgeEl.style.display = "inline-flex";
+      } else {
+        eventBadgeEl.style.display = "none";
+      }
+    }
+  }
 }
 
 function updateHeaderFiltersUI() {
+  const branchContainer = document.getElementById("header-branch-container");
+  const facultyContainer = document.getElementById("header-faculty-container");
+
+  // Remove branch and faculty filter only from Calendar tab (institutional events are campus-wide)
+  if (state.activeTab === "calendar") {
+    if (branchContainer) branchContainer.style.display = "none";
+    if (facultyContainer) facultyContainer.style.display = "none";
+    return;
+  } else {
+    if (branchContainer) branchContainer.style.display = "";
+    if (facultyContainer) facultyContainer.style.display = "";
+  }
+
   const branchValEl = document.getElementById("header-branch-val");
   const branchBtn = document.getElementById("header-branch-btn");
   const branchDropdown = document.getElementById("header-branch-dropdown");
@@ -367,6 +428,7 @@ function renderCurrentTab() {
   const effDate = getCurrentEffectiveDate();
 
   renderFilterBar();
+  updateHeaderClock();
 
   if (state.diagnostics.length > 0) {
     renderDiagnostics(mainContent);
@@ -412,6 +474,16 @@ function renderCurrentTab() {
     );
   } else if (state.activeTab === "next") {
     renderNextView(mainContent, state.data, effDate, state.filters);
+  } else if (state.activeTab === "calendar") {
+    renderCalendarView(
+      mainContent,
+      effDate,
+      state.calendarState,
+      (newCalState) => {
+        state.calendarState = { ...state.calendarState, ...newCalState };
+        renderCurrentTab();
+      }
+    );
   }
 }
 
