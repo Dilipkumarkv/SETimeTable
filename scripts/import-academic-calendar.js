@@ -20,6 +20,22 @@ const ALLOWED_TYPES = new Set([
 ]);
 
 /**
+ * Checks if a given year, month (1-12), and day form a valid calendar date.
+ * Handles leap years (e.g., 29 Feb 2028 is valid, 29 Feb 2026 is invalid).
+ */
+export function isValidCalendarDate(year, month, day) {
+  const y = parseInt(year, 10);
+  const m = parseInt(month, 10);
+  const d = parseInt(day, 10);
+  if (isNaN(y) || isNaN(m) || isNaN(d)) return false;
+  if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+
+  const isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+  const daysInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return d <= daysInMonth[m - 1];
+}
+
+/**
  * Normalizes an Excel date value into YYYY-MM-DD.
  * Supports:
  * - ISO string: "2026-10-14"
@@ -35,25 +51,30 @@ export function normalizeExcelDate(val, fieldName, rowNum) {
   // Already a Date object
   if (val instanceof Date) {
     if (isNaN(val.getTime())) {
-      throw new Error(`ERROR: Invalid date object in "${fieldName}" on row ${rowNum}.`);
+      throw new Error(`ERROR: Row ${rowNum}: Invalid date object in "${fieldName}".`);
     }
     const y = val.getFullYear();
-    const m = String(val.getMonth() + 1).padStart(2, "0");
-    const d = String(val.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    const m = val.getMonth() + 1;
+    const d = val.getDate();
+    if (!isValidCalendarDate(y, m, d)) {
+      throw new Error(`ERROR: Row ${rowNum}: Impossible calendar date in "${fieldName}".`);
+    }
+    return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   }
 
   // Excel serial number (days since Dec 30, 1899)
   if (typeof val === "number") {
-    // XLSX has built-in helper for numeric dates
     const dateObj = XLSX.SSF.parse_date_code(val);
     if (!dateObj || !dateObj.y || !dateObj.m || !dateObj.d) {
-      throw new Error(`ERROR: Unparseable numeric Excel date (${val}) in "${fieldName}" on row ${rowNum}.`);
+      throw new Error(`ERROR: Row ${rowNum}: Unparseable numeric Excel date (${val}) in "${fieldName}".`);
     }
     const y = dateObj.y;
-    const m = String(dateObj.m).padStart(2, "0");
-    const d = String(dateObj.d).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    const m = dateObj.m;
+    const d = dateObj.d;
+    if (!isValidCalendarDate(y, m, d)) {
+      throw new Error(`ERROR: Row ${rowNum}: Impossible calendar date (${val}) in "${fieldName}".`);
+    }
+    return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   }
 
   const str = String(val).trim();
@@ -65,8 +86,8 @@ export function normalizeExcelDate(val, fieldName, rowNum) {
     const y = parseInt(isoMatch[1], 10);
     const m = parseInt(isoMatch[2], 10);
     const d = parseInt(isoMatch[3], 10);
-    if (m < 1 || m > 12 || d < 1 || d > 31) {
-      throw new Error(`ERROR: Invalid month/day in date "${str}" on row ${rowNum}.`);
+    if (!isValidCalendarDate(y, m, d)) {
+      throw new Error(`ERROR: Row ${rowNum}: Impossible calendar date "${str}" in "${fieldName}".`);
     }
     return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   }
@@ -77,13 +98,13 @@ export function normalizeExcelDate(val, fieldName, rowNum) {
     const d = parseInt(dmyMatch[1], 10);
     const m = parseInt(dmyMatch[2], 10);
     const y = parseInt(dmyMatch[3], 10);
-    if (m < 1 || m > 12 || d < 1 || d > 31) {
-      throw new Error(`ERROR: Invalid month/day in date "${str}" on row ${rowNum}.`);
+    if (!isValidCalendarDate(y, m, d)) {
+      throw new Error(`ERROR: Row ${rowNum}: Impossible calendar date "${str}" in "${fieldName}".`);
     }
     return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   }
 
-  throw new Error(`ERROR: Unrecognized date format "${str}" in "${fieldName}" on row ${rowNum}. Expected YYYY-MM-DD or DD-MM-YYYY.`);
+  throw new Error(`ERROR: Row ${rowNum}: Unrecognized date format "${str}" in "${fieldName}". Expected YYYY-MM-DD or DD-MM-YYYY.`);
 }
 
 /**
@@ -139,24 +160,24 @@ export function validateAndNormalizeRows(rawRows) {
 
     // 1. Validate Date
     if (rawDate === undefined || rawDate === null || String(rawDate).trim() === "") {
-      throw new Error(`ERROR: Missing required "Date" column on row ${rowNum}.`);
+      throw new Error(`ERROR: Row ${rowNum}: Missing required "Date" column.`);
     }
     const date = normalizeExcelDate(rawDate, "Date", rowNum);
 
     // 2. Validate Title
     if (rawTitle === undefined || rawTitle === null || String(rawTitle).trim() === "") {
-      throw new Error(`ERROR: Missing required "Title" column on row ${rowNum}.`);
+      throw new Error(`ERROR: Row ${rowNum}: Missing required "Title" column.`);
     }
     const title = String(rawTitle).trim();
 
     // 3. Validate Type
     if (rawType === undefined || rawType === null || String(rawType).trim() === "") {
-      throw new Error(`ERROR: Missing required "Type" column on row ${rowNum}.`);
+      throw new Error(`ERROR: Row ${rowNum}: Missing required "Type" column.`);
     }
     const type = String(rawType).trim().toLowerCase();
     if (!ALLOWED_TYPES.has(type)) {
       throw new Error(
-        `ERROR: Unknown calendar event type "${rawType}" on row ${rowNum}. Allowed values: ${Array.from(ALLOWED_TYPES).join(", ")}.`
+        `ERROR: Row ${rowNum}: Unknown calendar event type "${rawType}". Allowed values: ${Array.from(ALLOWED_TYPES).join(", ")}.`
       );
     }
 
@@ -166,7 +187,7 @@ export function validateAndNormalizeRows(rawRows) {
       endDate = normalizeExcelDate(rawEndDate, "End Date", rowNum);
       if (endDate < date) {
         throw new Error(
-          `ERROR: End Date "${endDate}" precedes start Date "${date}" on row ${rowNum}.`
+          `ERROR: Row ${rowNum}: End Date cannot be earlier than Date (precedes start Date: "${endDate}" < "${date}").`
         );
       }
       // If endDate is identical to startDate, normalize to empty
@@ -180,7 +201,7 @@ export function validateAndNormalizeRows(rawRows) {
     if (seenKeys.has(duplicateKey)) {
       const prevRow = seenKeys.get(duplicateKey);
       throw new Error(
-        `ERROR: Exact duplicate event detected on row ${rowNum}: "${title}" (${date}). Previously declared on row ${prevRow}.`
+        `ERROR: Row ${rowNum}: Exact duplicate event detected: "${title}" (${date}). Previously declared on row ${prevRow}.`
       );
     }
     seenKeys.set(duplicateKey, rowNum);

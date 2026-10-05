@@ -8,6 +8,7 @@
 // - Formal institutional page boundary limit footer terminating the layout cleanly
 
 import {
+  getConfiguredYears,
   isConfiguredYear,
   getEventsForDate,
   getEventsForMonth,
@@ -18,10 +19,15 @@ import {
   isHolidayDate
 } from "./calendar.js";
 
-export const CALENDAR_MIN_YEAR = 2026;
-export const CALENDAR_MIN_MONTH = 1; // January 2026
-export const CALENDAR_MAX_YEAR = 2026;
-export const CALENDAR_MAX_MONTH = 12; // December 2026
+// Data-driven academic calendar boundaries derived from verified configured years
+const _configuredYears = (typeof getConfiguredYears === "function" && getConfiguredYears().length > 0)
+  ? getConfiguredYears()
+  : [2026];
+
+export const CALENDAR_MIN_YEAR = Math.min(..._configuredYears);
+export const CALENDAR_MIN_MONTH = 1; // January
+export const CALENDAR_MAX_YEAR = Math.max(..._configuredYears);
+export const CALENDAR_MAX_MONTH = 12; // December
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",

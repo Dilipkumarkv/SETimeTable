@@ -60,6 +60,11 @@ import {
   CALENDAR_MAX_YEAR,
   CALENDAR_MAX_MONTH
 } from "./ui-calendar.js";
+import {
+  isValidCalendarDate,
+  normalizeExcelDate,
+  validateAndNormalizeRows
+} from "./scripts/import-academic-calendar.js";
 
 export async function runAllTests() {
   const results = [];
@@ -1768,6 +1773,156 @@ export async function runAllTests() {
       `Jan Prev Disabled: ${isJanPrevDisabled}, Dec Next Disabled: ${isDecNextDisabled}, Oct Mid Interactive: ${areBothInteractiveInMid}`
     );
   }
+
+  // -------------------------------------------------------------
+  // Group S: Excel Importer Date Validation & Failure Condition Tests
+  // -------------------------------------------------------------
+
+  // S1. Impossible calendar date validation
+  assert(
+    "Importer Date Validation: 31/02/2026 rejected as impossible calendar date",
+    !isValidCalendarDate(2026, 2, 31),
+    "Feb 31 must be invalid"
+  );
+  assert(
+    "Importer Date Validation: 31/04/2026 rejected (April has 30 days)",
+    !isValidCalendarDate(2026, 4, 31),
+    "Apr 31 must be invalid"
+  );
+  assert(
+    "Importer Date Validation: 00/12/2026 rejected (day zero)",
+    !isValidCalendarDate(2026, 12, 0),
+    "Dec 0 must be invalid"
+  );
+  assert(
+    "Importer Date Validation: 2026-13-01 rejected (month 13)",
+    !isValidCalendarDate(2026, 13, 1),
+    "Month 13 must be invalid"
+  );
+  assert(
+    "Importer Date Validation: 29/02/2026 rejected (2026 is non-leap year)",
+    !isValidCalendarDate(2026, 2, 29),
+    "Feb 29 in 2026 must be invalid"
+  );
+  assert(
+    "Importer Date Validation: 29/02/2028 accepted (2028 is a leap year)",
+    isValidCalendarDate(2028, 2, 29),
+    "Feb 29 in 2028 must be valid"
+  );
+  assert(
+    "Importer Date Validation: 2026-02-28 accepted (standard end of Feb)",
+    isValidCalendarDate(2026, 2, 28),
+    "Feb 28 in 2026 must be valid"
+  );
+  assert(
+    "Importer Date Validation: 2026-03-31 accepted (standard end of Mar)",
+    isValidCalendarDate(2026, 3, 31),
+    "Mar 31 in 2026 must be valid"
+  );
+
+  // S2. Missing Date row rejected
+  let missingDateError = "";
+  try {
+    validateAndNormalizeRows([
+      { Title: "Test Event", Type: "exam" }
+    ]);
+  } catch (e) {
+    missingDateError = e.message;
+  }
+  assert(
+    "Importer Failure: Missing Date column throws clear error",
+    missingDateError.includes("Missing required \"Date\" column"),
+    missingDateError
+  );
+
+  // S3. Missing Title row rejected
+  let missingTitleError = "";
+  try {
+    validateAndNormalizeRows([
+      { Date: "2026-10-14", Type: "exam" }
+    ]);
+  } catch (e) {
+    missingTitleError = e.message;
+  }
+  assert(
+    "Importer Failure: Missing Title column throws clear error",
+    missingTitleError.includes("Missing required \"Title\" column"),
+    missingTitleError
+  );
+
+  // S4. Invalid Type row rejected
+  let invalidTypeError = "";
+  try {
+    validateAndNormalizeRows([
+      { Date: "2026-10-14", Title: "Unknown Type Event", Type: "xyz" }
+    ]);
+  } catch (e) {
+    invalidTypeError = e.message;
+  }
+  assert(
+    "Importer Failure: Unknown event type throws clear error",
+    invalidTypeError.includes("Unknown calendar event type \"xyz\""),
+    invalidTypeError
+  );
+
+  // S5. End Date earlier than Start Date rejected
+  let invalidEndDateError = "";
+  try {
+    validateAndNormalizeRows([
+      { Date: "2026-10-16", "End Date": "2026-10-14", Title: "Reversed Dates", Type: "exam" }
+    ]);
+  } catch (e) {
+    invalidEndDateError = e.message;
+  }
+  assert(
+    "Importer Failure: End Date preceding Start Date throws clear error",
+    invalidEndDateError.includes("End Date cannot be earlier than Date"),
+    invalidEndDateError
+  );
+
+  // S6. Exact duplicate event rejected
+  let duplicateError = "";
+  try {
+    validateAndNormalizeRows([
+      { Date: "2026-10-14", Title: "Duplicate CIE", Type: "exam" },
+      { Date: "2026-10-14", Title: "Duplicate CIE", Type: "exam" }
+    ]);
+  } catch (e) {
+    duplicateError = e.message;
+  }
+  assert(
+    "Importer Failure: Exact duplicate event throws clear error",
+    duplicateError.includes("Exact duplicate event detected"),
+    duplicateError
+  );
+
+  // S7. Impossible date in rows throws clear error
+  let impossibleDateRowError = "";
+  try {
+    validateAndNormalizeRows([
+      { Date: "31/02/2026", Title: "Feb 31 Event", Type: "academic" }
+    ]);
+  } catch (e) {
+    impossibleDateRowError = e.message;
+  }
+  assert(
+    "Importer Failure: Impossible date in row throws clear error",
+    impossibleDateRowError.includes("Impossible calendar date"),
+    impossibleDateRowError
+  );
+
+  // S8. Valid multi-day event correctly normalized
+  const validMultiDayRows = validateAndNormalizeRows([
+    { Date: "14/10/2026", "End Date": "16/10/2026", Title: "CIE-1 Multi-day", Type: "exam" }
+  ]);
+  assert(
+    "Importer Normalization: Multi-day event correctly preserves start and end dates",
+    validMultiDayRows.length === 1 &&
+      validMultiDayRows[0].date === "2026-10-14" &&
+      validMultiDayRows[0].endDate === "2026-10-16" &&
+      validMultiDayRows[0].type === "exam",
+    JSON.stringify(validMultiDayRows[0])
+  );
 
   return results;
 }

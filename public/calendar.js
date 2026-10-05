@@ -6,10 +6,23 @@ import { KARNATAKA_HOLIDAYS_2026 } from "./calendar/holidays/2026.js";
 import { KARNATAKA_HOLIDAYS_2027 } from "./calendar/holidays/2027.js";
 import { ACADEMIC_CALENDAR_EVENTS } from "./academic-calendar.generated.js";
 
+// Verified, production-configured academic years with authoritative notifications
+export const CONFIGURED_ACADEMIC_YEARS = [2026];
+
 const HOLIDAYS_BY_YEAR = {
   2026: KARNATAKA_HOLIDAYS_2026,
+  // 2027 is kept in repository as provisional reference, but not marked as an active configured production year
+  // until the official Karnataka Government DPAR 2027 gazette notification is issued.
   2027: KARNATAKA_HOLIDAYS_2027
 };
+
+/**
+ * Returns the list of officially configured and verified academic calendar years.
+ * @returns {number[]}
+ */
+export function getConfiguredYears() {
+  return [...CONFIGURED_ACADEMIC_YEARS];
+}
 
 /**
  * Checks if a specific year has configured calendar/holiday data.
@@ -18,7 +31,7 @@ const HOLIDAYS_BY_YEAR = {
  */
 export function isConfiguredYear(year) {
   const y = parseInt(year, 10);
-  return Boolean(HOLIDAYS_BY_YEAR[y] || ACADEMIC_CALENDAR_EVENTS.some(e => e.date.startsWith(String(y))));
+  return CONFIGURED_ACADEMIC_YEARS.includes(y);
 }
 
 /**
