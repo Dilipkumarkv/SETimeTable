@@ -299,7 +299,7 @@ export default ACADEMIC_CALENDAR_EVENTS;
   for (const [t, count] of Object.entries(typeSummary)) {
     console.log(`   - ${t.toUpperCase().padEnd(12)}: ${count}`);
   }
-  console.log(`\n🎉 Academic Calendar import succeeded with 0 errors.\n`);
+  console.log(`\n🎉 Academic Calendar imported successfully (100% valid).\n`);
   return events;
 }
 
