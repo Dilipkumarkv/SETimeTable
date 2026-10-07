@@ -203,6 +203,83 @@ export function getCurrentEntries(data, date) {
 }
 
 /**
+ * Resolves all currently free faculty for the given timetable data and effective date/time.
+ * A faculty is Free when they have no timetable entry occupying the currently relevant day/period.
+ * Reuses the application's existing time-slot/current-period resolver (getSlotState).
+ *
+ * Correctly handles:
+ * - multi-period classes (entryCoversSlot across period spans)
+ * - lunch according to existing application semantics (all faculty free during break/lunch)
+ * - faculty roster members with no scheduled entries (always in free list)
+ * - missing/unknown faculty according to existing validation rules
+ * - simultaneous/combined teaching (all co-lecturers marked busy)
+ *
+ * @param {object} data Timetable data
+ * @param {Date} date Current effective date
+ * @returns {{
+ *   status: string,
+ *   day: string,
+ *   timeStr: string,
+ *   currentSlot: object | null,
+ *   freeCodes: Set<string>,
+ *   freeList: Array<{ code: string, name: string }>,
+ *   busyCodes: Set<string>,
+ *   busyDetails: object
+ * }}
+ */
+export function getFreeFaculty(data, date) {
+  if (!data) return { status: "closed", day: "MON", timeStr: "00:00", currentSlot: null, freeCodes: new Set(), freeList: [], busyCodes: new Set(), busyDetails: {} };
+  const slotState = getSlotState(data, date || new Date());
+  const { status, day, currentSlot, timeStr } = slotState;
+  const allLecturerKeys = Object.keys(data.lecturers || {}).sort();
+  const busyCodes = new Set();
+  const busyDetails = {};
+
+  if (status === "in-period" && currentSlot) {
+    const slotIndexMap = getSlotIndexMap(data.slots || []);
+    const curIdx = slotIndexMap.get(currentSlot.id);
+
+    if (curIdx !== undefined) {
+      (data.entries || []).forEach(e => {
+        if (e.day === day && entryCoversSlot(e, curIdx, slotIndexMap)) {
+          (e.lecturers || []).forEach(l => {
+            if (data.lecturers && data.lecturers[l]) {
+              busyCodes.add(l);
+              busyDetails[l] = {
+                subject: e.subject,
+                classId: e.classId,
+                room: e.room,
+                type: e.type,
+                batch: e.batch
+              };
+            }
+          });
+        }
+      });
+    }
+  }
+
+  const freeCodes = new Set(allLecturerKeys.filter(k => !busyCodes.has(k)));
+  const freeList = allLecturerKeys
+    .filter(k => freeCodes.has(k))
+    .map(k => ({
+      code: k,
+      name: (data.lecturers && data.lecturers[k] && data.lecturers[k].name) || k
+    }));
+
+  return {
+    status,
+    day,
+    timeStr,
+    currentSlot,
+    freeCodes,
+    freeList,
+    busyCodes,
+    busyDetails
+  };
+}
+
+/**
  * Returns upcoming slots and entries for today (or tomorrow if today has ended).
  * Invariant: Multi-slot lab spans are consolidated to display once with their full time range.
  * Returns: {
@@ -437,9 +514,29 @@ export function getLecturerWeek(data, initials) {
  * - branch: "ALL" or specific branch (e.g. "CS")
  * - lecturer: "ALL" or lecturer initials (e.g. "RBL")
  */
+/**
+ * Helper to match an entry's lecturer list against the active lecturer filter.
+ * Preserves exact behavior for "ALL" and specific initials, and supports "FREE".
+ */
+export function matchesLecturerFilter(lecturers, lecturerFilter, freeFacultyCodes) {
+  if (!lecturerFilter || lecturerFilter === "ALL") return true;
+  if (!lecturers || lecturers.length === 0) return false;
+  if (lecturerFilter === "FREE") {
+    if (!freeFacultyCodes) return true;
+    return lecturers.some(l => freeFacultyCodes.has(l));
+  }
+  return lecturers.includes(lecturerFilter);
+}
+
+/**
+ * Pure filter for current entries (Now view).
+ * - branch: "ALL" or specific branch (e.g. "CS")
+ * - lecturer: "ALL", "FREE", or lecturer initials (e.g. "RBL")
+ */
 export function filterCurrentEntries(currentEntries, filters = {}) {
   const branchFilter = filters.branch || "ALL";
   const lecturerFilter = filters.lecturer || "ALL";
+  const freeCodes = filters.freeFacultyCodes;
 
   if (branchFilter === "ALL" && lecturerFilter === "ALL") {
     return currentEntries;
@@ -451,10 +548,10 @@ export function filterCurrentEntries(currentEntries, filters = {}) {
       if (branchFilter !== "ALL" && item.branch !== branchFilter) {
         return false;
       }
-      // 2. Lecturer match: must have at least one current entry taught by this lecturer
+      // 2. Lecturer match: must have at least one current entry taught by matching lecturer
       if (lecturerFilter !== "ALL") {
         const hasLecturer = item.entries && item.entries.some(entry =>
-          entry.lecturers && entry.lecturers.includes(lecturerFilter)
+          matchesLecturerFilter(entry.lecturers, lecturerFilter, freeCodes)
         );
         if (!hasLecturer) {
           return false;
@@ -466,9 +563,9 @@ export function filterCurrentEntries(currentEntries, filters = {}) {
       if (lecturerFilter === "ALL") {
         return item;
       }
-      // Keep only entries taught by the selected lecturer
+      // Keep only entries taught by the matching lecturer
       const matchingEntries = item.entries.filter(entry =>
-        entry.lecturers && entry.lecturers.includes(lecturerFilter)
+        matchesLecturerFilter(entry.lecturers, lecturerFilter, freeCodes)
       );
       return {
         ...item,
@@ -485,6 +582,7 @@ export function filterCurrentEntries(currentEntries, filters = {}) {
 export function filterUpcomingEntries(upcomingData, filters = {}) {
   const branchFilter = filters.branch || "ALL";
   const lecturerFilter = filters.lecturer || "ALL";
+  const freeCodes = filters.freeFacultyCodes;
 
   if (branchFilter === "ALL" && lecturerFilter === "ALL") {
     return upcomingData;
@@ -501,7 +599,7 @@ export function filterUpcomingEntries(upcomingData, filters = {}) {
           // 2. Lecturer match
           if (lecturerFilter !== "ALL") {
             const hasLecturer = classItem.entries && classItem.entries.some(eObj =>
-              eObj.entry && eObj.entry.lecturers && eObj.entry.lecturers.includes(lecturerFilter)
+              matchesLecturerFilter(eObj.entry && eObj.entry.lecturers, lecturerFilter, freeCodes)
             );
             if (!hasLecturer) {
               return false;
@@ -513,9 +611,9 @@ export function filterUpcomingEntries(upcomingData, filters = {}) {
           if (lecturerFilter === "ALL") {
             return classItem;
           }
-          // Narrow down entries within class to those taught by lecturer
+          // Narrow down entries within class to those matching lecturer
           const matchingEntries = classItem.entries.filter(eObj =>
-            eObj.entry && eObj.entry.lecturers && eObj.entry.lecturers.includes(lecturerFilter)
+            matchesLecturerFilter(eObj.entry && eObj.entry.lecturers, lecturerFilter, freeCodes)
           );
           return {
             ...classItem,
@@ -544,6 +642,7 @@ export function filterUpcomingEntries(upcomingData, filters = {}) {
 export function filterDayGrid(dayGrid, filters = {}) {
   const branchFilter = filters.branch || "ALL";
   const lecturerFilter = filters.lecturer || "ALL";
+  const freeCodes = filters.freeFacultyCodes;
 
   if (branchFilter === "ALL" && lecturerFilter === "ALL") {
     return dayGrid;
@@ -555,11 +654,11 @@ export function filterDayGrid(dayGrid, filters = {}) {
       if (branchFilter !== "ALL" && row.branch !== branchFilter) {
         return false;
       }
-      // 2. Lecturer match: class must have at least one entry taught by lecturer on this day
+      // 2. Lecturer match: class must have at least one entry matching lecturer on this day
       if (lecturerFilter !== "ALL") {
         const hasLecturerAnywhere = row.cells.some(cell =>
           cell.entries && cell.entries.some(entry =>
-            entry.lecturers && entry.lecturers.includes(lecturerFilter)
+            matchesLecturerFilter(entry.lecturers, lecturerFilter, freeCodes)
           )
         );
         if (!hasLecturerAnywhere) {
@@ -572,13 +671,13 @@ export function filterDayGrid(dayGrid, filters = {}) {
       if (lecturerFilter === "ALL") {
         return row;
       }
-      // For cells, keep only entries taught by this lecturer
+      // For cells, keep only entries matching this lecturer filter
       const newCells = row.cells.map(cell => {
         if (!cell.entries || cell.entries.length === 0) {
           return cell;
         }
         const matchingEntries = cell.entries.filter(entry =>
-          entry.lecturers && entry.lecturers.includes(lecturerFilter)
+          matchesLecturerFilter(entry.lecturers, lecturerFilter, freeCodes)
         );
         return {
           ...cell,
@@ -938,6 +1037,7 @@ export function filterTodayTimeline(timeline, filters) {
   if (!timeline || !timeline.timelineItems) return timeline;
   const branchFilter = filters?.branch || "ALL";
   const lecturerFilter = filters?.lecturer || "ALL";
+  const freeCodes = filters?.freeFacultyCodes;
 
   if (branchFilter === "ALL" && lecturerFilter === "ALL") {
     return timeline;
@@ -960,7 +1060,7 @@ export function filterTodayTimeline(timeline, filters) {
       }
 
       const matchingEntries = cls.entries.filter(e => {
-        return e.entry.lecturers && e.entry.lecturers.includes(lecturerFilter);
+        return matchesLecturerFilter(e.entry && e.entry.lecturers, lecturerFilter, freeCodes);
       });
 
       if (matchingEntries.length === 0) {
@@ -994,6 +1094,7 @@ export function filterTodayTimeline(timeline, filters) {
 export function getDayFeed(data, day, filters = { branch: "ALL", lecturer: "ALL" }) {
   const branchFilter = filters?.branch || "ALL";
   const lecturerFilter = filters?.lecturer || "ALL";
+  const freeCodes = filters?.freeFacultyCodes;
   const slotIndexMap = getSlotIndexMap(data.slots);
   const seenEntries = new Set();
   let totalEntries = 0;
@@ -1022,7 +1123,7 @@ export function getDayFeed(data, day, filters = { branch: "ALL", lecturer: "ALL"
 
       for (const entry of coveringEntries) {
         if (lecturerFilter !== "ALL") {
-          if (!entry.lecturers || !entry.lecturers.includes(lecturerFilter)) {
+          if (!matchesLecturerFilter(entry.lecturers, lecturerFilter, freeCodes)) {
             continue;
           }
         }
@@ -1125,7 +1226,12 @@ export function searchAndFilterEntries(data, criteria = {}) {
 
     // Filter by Faculty Member
     if (lecturerFilter !== "ALL") {
-      if (!entry.lecturers || !entry.lecturers.includes(lecturerFilter)) {
+      if (lecturerFilter === "FREE") {
+        const freeCodes = criteria.freeFacultyCodes;
+        if (freeCodes && (!entry.lecturers || !entry.lecturers.some(l => freeCodes.has(l)))) {
+          return;
+        }
+      } else if (!entry.lecturers || !entry.lecturers.includes(lecturerFilter)) {
         return;
       }
     }

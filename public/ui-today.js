@@ -100,6 +100,42 @@ export function renderTodayView(container, data, currentDate, filters = { branch
           <span class="today-status-chip status-${status}" role="status">${statusSummary}</span>
         </div>
       </section>
+
+      <!-- Active Filter Chips Tray (Branch / Faculty / Free Faculty) -->
+      ${isFiltered ? `
+        <div class="today-active-chips-tray" role="region" aria-label="Active Filters">
+          ${filters.branch && filters.branch !== "ALL" ? `
+            <button type="button" class="filter-dismiss-chip" data-clear="branch" title="Remove branch filter" aria-label="Remove branch filter ${filters.branch}">
+              <span>Branch: <strong>${filters.branch}</strong></span>
+              <span class="filter-dismiss-x" aria-hidden="true">×</span>
+            </button>
+          ` : ''}
+          ${filters.lecturer && filters.lecturer !== "ALL" ? `
+            <button type="button" class="filter-dismiss-chip" data-clear="lecturer" title="Remove faculty filter" aria-label="Remove faculty filter">
+              <span>Faculty: <strong>${filters.lecturer === "FREE" ? "Free Faculty Now" : filters.lecturer}</strong></span>
+              <span class="filter-dismiss-x" aria-hidden="true">×</span>
+            </button>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <!-- Dedicated Free Faculty Now Banner & Quick Picker -->
+      ${filters.lecturer === "FREE" && filters.freeFacultyList ? `
+        <div class="today-free-faculty-banner" role="region" aria-label="Available Faculty Now">
+          <div class="today-free-faculty-header">
+            <span class="free-banner-dot">🟢</span>
+            <strong>${filters.freeFacultyList.length} Faculty Members Available Right Now</strong>
+          </div>
+          <p class="today-free-subtext">Currently unscheduled for active period ${timeStr}. Tap any faculty to view individual schedule:</p>
+          <div class="today-free-chips-list">
+            ${filters.freeFacultyList.map(f => `
+              <button type="button" class="free-faculty-pill-btn" data-lecturer-code="${f.code}" title="Switch filter to ${f.name} (${f.code})">
+                <strong>${f.code}</strong> <span class="free-pill-name">${f.name}</span>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      ` : ''}
   `;
 
   // Closed / Sunday state: Unified, compact card without redundant text
@@ -343,4 +379,30 @@ export function renderTodayView(container, data, currentDate, filters = { branch
   `;
 
   container.innerHTML = html;
+
+  // Filter dismissal chips
+  container.querySelectorAll(".filter-dismiss-chip").forEach(chip => {
+    chip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.TimetableApp?.triggerHaptic?.(12);
+      const clearType = chip.getAttribute("data-clear");
+      if (clearType === "branch") {
+        window.TimetableApp?.setBranchFilter?.("ALL");
+      } else if (clearType === "lecturer") {
+        window.TimetableApp?.setLecturerFilter?.("ALL");
+      }
+    });
+  });
+
+  // Free faculty quick-switch pill buttons
+  container.querySelectorAll(".free-faculty-pill-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.TimetableApp?.triggerHaptic?.(14);
+      const code = btn.getAttribute("data-lecturer-code");
+      if (code && window.TimetableApp?.setLecturerFilter) {
+        window.TimetableApp.setLecturerFilter(code);
+      }
+    });
+  });
 }

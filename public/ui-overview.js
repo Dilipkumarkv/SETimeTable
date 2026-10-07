@@ -127,8 +127,12 @@ function renderDayOverview(container, data, simDate, overviewState, onStateChang
     let filterDesc = [];
     if (filters.branch && filters.branch !== "ALL") filterDesc.push(`Branch: ${filters.branch}`);
     if (filters.lecturer && filters.lecturer !== "ALL") {
-      const lName = data.lecturers[filters.lecturer]?.name || filters.lecturer;
-      filterDesc.push(`Lecturer: ${lName} (${filters.lecturer})`);
+      if (filters.lecturer === "FREE") {
+        filterDesc.push("Faculty: Free Faculty Now");
+      } else {
+        const lName = data.lecturers[filters.lecturer]?.name || filters.lecturer;
+        filterDesc.push(`Lecturer: ${lName} (${filters.lecturer})`);
+      }
     }
     const filterText = filterDesc.join(" • ");
 

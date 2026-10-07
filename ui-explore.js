@@ -346,7 +346,7 @@ export function renderExploreView(container, data, exploreState, onStateChange, 
         ` : ''}
         ${lecturer !== "ALL" ? `
           <button type="button" class="filter-dismiss-chip" data-clear="lecturer" title="Remove faculty filter" aria-label="Remove faculty filter ${lecturer}">
-            <span>Faculty: <strong>${lecturer}</strong></span>
+            <span>Faculty: <strong>${lecturer === "FREE" ? "Free Faculty Now" : lecturer}</strong></span>
             <span class="filter-dismiss-x" aria-hidden="true">×</span>
           </button>
         ` : ''}
@@ -453,7 +453,7 @@ export function renderExploreView(container, data, exploreState, onStateChange, 
           ` : ''}
           ${lecturer !== "ALL" ? `
             <button type="button" class="filter-dismiss-chip" data-clear="lecturer" title="Remove faculty filter" aria-label="Remove faculty filter ${lecturer}">
-              <span>Faculty: <strong>${lecturer}</strong></span>
+              <span>Faculty: <strong>${lecturer === "FREE" ? "Free Faculty Now" : lecturer}</strong></span>
               <span class="filter-dismiss-x" aria-hidden="true">×</span>
             </button>
           ` : ''}

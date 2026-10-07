@@ -20,7 +20,8 @@ import {
   filterUpcomingEntries,
   filterDayGrid,
   getDayFeed,
-  searchAndFilterEntries
+  searchAndFilterEntries,
+  getFreeFaculty
 } from "./time.js";
 import { renderTodayView } from "./ui-today.js";
 import { renderWeekView } from "./ui-week.js";
@@ -382,7 +383,16 @@ function updateHeaderFiltersUI() {
   }
 
   if (facultyValEl) {
-    facultyValEl.textContent = state.filters.lecturer === "ALL" ? "All" : state.filters.lecturer;
+    if (state.filters.lecturer === "ALL") {
+      facultyValEl.textContent = "All";
+    } else if (state.filters.lecturer === "FREE") {
+      const eff = getCurrentEffectiveDate();
+      const freeInfo = getFreeFaculty(state.data, eff);
+      const count = freeInfo.freeList ? freeInfo.freeList.length : 0;
+      facultyValEl.textContent = `Free Now (${count})`;
+    } else {
+      facultyValEl.textContent = state.filters.lecturer;
+    }
   }
   if (facultyBtn) {
     if (state.filters.lecturer !== "ALL") {
@@ -394,15 +404,29 @@ function updateHeaderFiltersUI() {
 
   if (facultyDropdown && state.data && state.data.lecturers) {
     const lecturerKeys = Object.keys(state.data.lecturers).sort();
+    const effDate = getCurrentEffectiveDate();
+    const freeInfo = getFreeFaculty(state.data, effDate);
+    const freeCount = freeInfo.freeList ? freeInfo.freeList.length : 0;
+
     facultyDropdown.innerHTML = `
       <button type="button" class="header-dropdown-item ${state.filters.lecturer === "ALL" ? "active" : ""}" data-lecturer="ALL">
         All Faculty
       </button>
-      ${lecturerKeys.map(init => `
-        <button type="button" class="header-dropdown-item ${state.filters.lecturer === init ? "active" : ""}" data-lecturer="${init}">
-          ${init}
-        </button>
-      `).join("")}
+      <button type="button" class="header-dropdown-item header-dropdown-item-free ${state.filters.lecturer === "FREE" ? "active" : ""}" data-lecturer="FREE">
+        <span><span class="free-indicator-dot">🟢</span> <strong>Free Faculty Now</strong></span>
+        <span class="badge-free-tag">${freeCount} Free</span>
+      </button>
+      <div class="header-dropdown-divider" role="separator"></div>
+      ${lecturerKeys.map(init => {
+        const isFree = freeInfo.freeCodes && freeInfo.freeCodes.has(init);
+        const name = (state.data.lecturers[init] && state.data.lecturers[init].name) || init;
+        return `
+          <button type="button" class="header-dropdown-item ${state.filters.lecturer === init ? "active" : ""}" data-lecturer="${init}">
+            <span><strong>${init}</strong> — ${name}</span>
+            ${isFree ? '<span class="badge-free-tag">Free</span>' : ''}
+          </button>
+        `;
+      }).join("")}
     `;
 
     facultyDropdown.querySelectorAll(".header-dropdown-item").forEach(item => {
@@ -451,6 +475,18 @@ function renderCurrentTab() {
   const mainContent = document.getElementById("main-content");
   const effDate = getCurrentEffectiveDate();
 
+  if (typeof document !== "undefined" && document.body) {
+    document.body.setAttribute("data-active-tab", state.activeTab);
+    const headerEl = document.querySelector(".app-header");
+    if (headerEl) {
+      if (state.activeTab === "calendar") {
+        headerEl.classList.add("tab-calendar");
+      } else {
+        headerEl.classList.remove("tab-calendar");
+      }
+    }
+  }
+
   renderFilterBar();
   updateHeaderClock();
 
@@ -459,8 +495,15 @@ function renderCurrentTab() {
     return;
   }
 
+  const freeFacultyObj = getFreeFaculty(state.data, effDate);
+  const activeFilters = {
+    ...state.filters,
+    freeFacultyCodes: freeFacultyObj.freeCodes,
+    freeFacultyList: freeFacultyObj.freeList
+  };
+
   if (state.activeTab === "today" || state.activeTab === "now") {
-    renderTodayView(mainContent, state.data, effDate, state.filters);
+    renderTodayView(mainContent, state.data, effDate, activeFilters);
   } else if (state.activeTab === "week") {
     renderWeekView(
       mainContent,
@@ -471,7 +514,7 @@ function renderCurrentTab() {
         state.weekState = newWeekState;
         renderCurrentTab();
       },
-      state.filters
+      activeFilters
     );
   } else if (state.activeTab === "overview") {
     renderOverviewView(
@@ -483,7 +526,7 @@ function renderCurrentTab() {
         state.overviewState = newOverviewState;
         renderCurrentTab();
       },
-      state.filters
+      activeFilters
     );
   } else if (state.activeTab === "explore") {
     renderExploreView(
@@ -494,10 +537,10 @@ function renderCurrentTab() {
         state.exploreState = newExploreState;
         renderCurrentTab();
       },
-      state.filters
+      activeFilters
     );
   } else if (state.activeTab === "next") {
-    renderNextView(mainContent, state.data, effDate, state.filters);
+    renderNextView(mainContent, state.data, effDate, activeFilters);
   } else if (state.activeTab === "calendar") {
     renderCalendarView(
       mainContent,
